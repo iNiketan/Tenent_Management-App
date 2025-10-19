@@ -3,13 +3,13 @@
 {% block title %}Rent Collection Report - Rental Management System{% endblock %}
 
 {% block content %}
-<div class="px-4 py-6 sm:px-0">
-    <div class="border-4 border-dashed border-gray-200 rounded-lg p-6">
-        <div class="flex justify-between items-center mb-6">
-            <h1 class="text-2xl font-bold text-gray-900">Rent Collection Report</h1>
-            <div class="flex space-x-2">
-                <input type="month" id="month-selector" class="form-input" value="{{ month }}" onchange="updateMonth()">
-                <button onclick="exportCSV()" class="btn-secondary">Export CSV</button>
+<div class="px-2 py-4 sm:px-4 md:px-6 overflow-x-hidden">
+    <div class="border-4 border-dashed border-gray-200 rounded-lg p-3 sm:p-4 md:p-6">
+        <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 mb-6">
+            <h1 class="text-xl sm:text-2xl font-bold text-gray-900">Rent Collection Report</h1>
+            <div class="flex flex-col sm:flex-row gap-2">
+                <input type="month" id="month-selector" class="px-3 py-2 border border-gray-300 rounded-lg min-h-[44px] w-full sm:w-auto" value="{{ month }}" onchange="updateMonth()">
+                <button onclick="exportCSV()" class="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 min-h-[44px] w-full sm:w-auto">Export CSV</button>
             </div>
         </div>
 
@@ -32,13 +32,13 @@
                 </div>
                 <div>
                     <p class="text-sm text-gray-600">Average Payment</p>
-                    <p class="text-2xl font-bold text-purple-600">₹{{ payments|length|div:total|floatformat:2 }}</p>
+                    <p class="text-2xl font-bold text-purple-600">₹{{ average|floatformat:2 }}</p>
                 </div>
             </div>
         </div>
 
         <!-- Payments Table -->
-        <div class="bg-white shadow overflow-hidden sm:rounded-md">
+        <div class="bg-white shadow overflow-x-auto sm:rounded-md">
             <table class="min-w-full divide-y divide-gray-200">
                 <thead class="bg-gray-50">
                     <tr>
