@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Electricity Invoice - {{ month }}</title>
+</head>
+<body>
+    <div class="header">
+        <div class="invoice-title">Electricity Invoice</div>
+        <div class="invoice-number">{{ month }} | {{ room.room_number }} - {{ building.name }}</div>
+    </div>
+
+    <div class="org-info">
+        <div class="org-name">{{ org_name }}</div>
+        {% if org_address %}
+        <div class="org-address">{{ org_address }}</div>
+        {% endif %}
+        {% if gstin %}
+        <div class="gstin">GSTIN: {{ gstin }}</div>
+        {% endif %}
+    </div>
+
+    <div class="invoice-details">
+        <div class="detail-row">
+            <div class="detail-label">Room:</div>
+            <div class="detail-value">{{ room.room_number }} - {{ building.name }} (Floor {{ floor.floor_number }})</div>
+        </div>
+        {% if tenant_info %}
+        <div class="detail-row">
+            <div class="detail-label">Tenant:</div>
+            <div class="detail-value">{{ tenant_info.name }}</div>
+        </div>
+        <div class="detail-row">
+            <div class="detail-label">Phone:</div>
+            <div class="detail-value">{{ tenant_info.phone }}</div>
+        </div>
+        {% if tenant_info.email %}
+        <div class="detail-row">
+            <div class="detail-label">Email:</div>
+            <div class="detail-value">{{ tenant_info.email }}</div>
+        </div>
+        {% endif %}
+        {% endif %}
+        <div class="detail-row">
+            <div class="detail-label">Billing Period:</div>
+            <div class="detail-value">{{ month }}</div>
+        </div>
+        <div class="detail-row">
+            <div class="detail-label">Invoice Date:</div>
+            <div class="detail-value">{{ generated_at|date:"F d, Y" }}</div>
+        </div>
+    </div>
+
+    <div class="billing-details">
+        <h3 style="margin-top: 0; margin-bottom: 15px;">Electricity Consumption Details</h3>
+        
+        <div class="billing-row">
+            <div class="billing-label">Previous Reading:</div>
+            <div class="billing-value">{{ bill_data.previous_reading|default:"N/A" }} units</div>
+        </div>
+        
+        <div class="billing-row">
+            <div class="billing-label">Current Reading:</div>
+            <div class="billing-value">{{ bill_data.current_reading|default:"N/A" }} units</div>
+        </div>
+        
+        <div class="billing-row">
+            <div class="billing-label">Units Consumed:</div>
+            <div class="billing-value">{{ bill_data.units }} units</div>
+        </div>
+        
+        <div class="billing-row">
+            <div class="billing-label">Rate per Unit:</div>
+            <div class="billing-value">{{ currency_symbol }}{{ bill_data.rate }}</div>
+        </div>
+        
+        <div class="billing-row total-amount">
+            <div class="billing-label">Total Amount:</div>
+            <div class="billing-value">{{ currency_symbol }}{{ bill_data.total }}</div>
+        </div>
+    </div>
+
+    {% if bill_data.units == 0 %}
+    <div style="background-color: #fff3cd; border: 1px solid #ffeaa7; padding: 10px; border-radius: 5px; margin-bottom: 20px;">
+        <strong>Note:</strong> No current reading available for this month. Please ensure meter readings are recorded.
+    </div>
+    {% endif %}
+
+    <div class="footer">
+        <p>Generated on {{ generated_at|date:"F d, Y \a\t g:i A" }}</p>
+        <p>Please pay this amount by the due date. Thank you for your business!</p>
+    </div>
+</body>
+</html>

@@ -1,0 +1,296 @@
+<!-- Room Maintenance Drawer - All-in-One Management Screen -->
+<div class="space-y-6">
+
+    <!-- Room Header -->
+    <div class="mb-6">
+        <div class="flex items-center justify-between mb-2">
+            <h3 class="text-2xl font-bold text-gray-900">Room {{ room.room_number }}</h3>
+            <span class="{% if room.status == 'occupied' %}bg-blue-100 text-blue-800{% elif room.status == 'vacant' %}bg-gray-100 text-gray-700{% else %}bg-yellow-100 text-yellow-800{% endif %} px-3 py-1 text-sm font-semibold rounded-full">
+                {{ room.get_status_display }}
+            </span>
+        </div>
+        <p class="text-sm text-gray-600">{{ room.building.name }} - Floor {{ room.floor.floor_number }}</p>
+    </div>
+
+    {% if active_lease %}
+    <!-- Tenant & Rent Information (Inline Editable) -->
+    <div class="bg-gradient-to-r from-blue-50 to-blue-100 border-2 border-blue-200 rounded-lg p-5">
+        <h4 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+            <svg class="w-5 h-5 mr-2 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+            </svg>
+            Tenant Information
+        </h4>
+        
+        <!-- Tenant Name (Editable) -->
+        <div class="mb-4">
+            <label class="block text-sm font-medium text-gray-700 mb-2">Tenant</label>
+            <form hx-post="{% url 'update_lease_tenant' active_lease.id %}" 
+                  hx-target="#room-drawer-content" 
+                  hx-swap="innerHTML"
+                  class="flex gap-2">
+                {% csrf_token %}
+                <select name="tenant_id" class="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white min-h-[44px]">
+                    {% for tenant in all_tenants %}
+                    <option value="{{ tenant.id }}" {% if active_lease.tenant.id == tenant.id %}selected{% endif %}>
+                        {{ tenant.full_name }}
+                    </option>
+                    {% endfor %}
+                </select>
+                <button type="submit" class="px-4 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-all duration-200 min-h-[44px]">
+                    Update
+                </button>
+            </form>
+            <p class="text-xs text-gray-600 mt-1">Phone: {{ active_lease.tenant.phone }}</p>
+        </div>
+        
+        <!-- Monthly Rent (Editable) -->
+        <div class="mb-4">
+            <label class="block text-sm font-medium text-gray-700 mb-2">Monthly Rent</label>
+            <form hx-post="{% url 'update_lease_rent' active_lease.id %}" 
+                  hx-target="#room-drawer-content" 
+                  hx-swap="innerHTML"
+                  class="flex gap-2">
+                {% csrf_token %}
+                <input type="number" 
+                       name="rent" 
+                       value="{{ active_lease.monthly_rent|floatformat:0 }}"
+                       class="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 min-h-[44px]">
+                <button type="submit" class="px-4 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-all duration-200 min-h-[44px]">
+                    Update
+                </button>
+            </form>
+        </div>
+        
+        <!-- Lease Dates -->
+        <div class="grid grid-cols-2 gap-3 text-sm">
+            <div>
+                <p class="text-gray-600">Start Date</p>
+                <p class="font-medium text-gray-900">{{ active_lease.start_date|date:"M d, Y" }}</p>
+            </div>
+            <div>
+                <p class="text-gray-600">End Date</p>
+                <p class="font-medium text-gray-900">{% if active_lease.end_date %}{{ active_lease.end_date|date:"M d, Y" }}{% else %}Ongoing{% endif %}</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Current Month Rent Status (Inline Editable) -->
+    <div class="bg-gradient-to-r from-green-50 to-emerald-100 border-2 border-green-200 rounded-lg p-5">
+        <h4 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+            <svg class="w-5 h-5 mr-2 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+            Rent for {{ current_month }} (This Month)
+        </h4>
+        
+        <form hx-post="{% url 'update_payment_status' room.id %}" 
+              hx-target="#room-drawer-content" 
+              hx-swap="innerHTML"
+              x-data="{ status: '{{ current_month_status }}' }">
+            {% csrf_token %}
+            
+            <!-- Status Buttons -->
+            <div class="mb-4">
+                <label class="block text-sm font-medium text-gray-700 mb-2">Payment Status</label>
+                <div class="flex gap-2">
+                    <button type="button" 
+                            @click="status = 'paid'; $el.closest('form').querySelector('[name=status]').value = 'paid'; $el.closest('form').requestSubmit()"
+                            class="flex-1 px-4 py-3 text-sm font-medium rounded-lg border-2 transition-all duration-200 min-h-[44px]"
+                            :class="status === 'paid' ? 'bg-green-600 text-white border-green-600' : 'bg-white text-green-700 border-green-300 hover:bg-green-50'">
+                        ✓ Paid
+                    </button>
+                    <button type="button"
+                            @click="status = 'partial'"
+                            class="flex-1 px-4 py-3 text-sm font-medium rounded-lg border-2 transition-all duration-200 min-h-[44px]"
+                            :class="status === 'partial' ? 'bg-orange-600 text-white border-orange-600' : 'bg-white text-orange-700 border-orange-300 hover:bg-orange-50'">
+                        ◑ Partial
+                    </button>
+                    <button type="button"
+                            @click="status = 'unpaid'; $el.closest('form').querySelector('[name=status]').value = 'unpaid'; $el.closest('form').requestSubmit()"
+                            class="flex-1 px-4 py-3 text-sm font-medium rounded-lg border-2 transition-all duration-200 min-h-[44px]"
+                            :class="status === 'unpaid' ? 'bg-red-600 text-white border-red-600' : 'bg-white text-red-700 border-red-300 hover:bg-red-50'">
+                        ✗ Unpaid
+                    </button>
+                </div>
+                <input type="hidden" name="status" value="{{ current_month_status }}">
+            </div>
+            
+            <!-- Amount Paid (for Partial) -->
+            <div x-show="status === 'partial'" x-transition class="mb-4">
+                <label class="block text-sm font-medium text-gray-700 mb-2">Amount Paid</label>
+                <div class="flex gap-2">
+                    <input type="number" 
+                           name="amount" 
+                           value="{{ amount_paid|floatformat:0 }}"
+                           placeholder="Enter amount"
+                           class="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 min-h-[44px]">
+                    <button type="submit" class="px-4 py-2 bg-orange-600 text-white font-medium rounded-lg hover:bg-orange-700 transition-all duration-200 min-h-[44px]">
+                        Save
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Current Status Display -->
+            <div class="mt-3 p-3 bg-white rounded-lg">
+                <div class="flex justify-between items-center text-sm">
+                    <span class="text-gray-600">Total Rent:</span>
+                    <span class="font-bold text-gray-900">₹{{ current_month_invoice.total|floatformat:0 }}</span>
+                </div>
+                {% if current_month_status != 'unpaid' %}
+                <div class="flex justify-between items-center text-sm mt-1">
+                    <span class="text-gray-600">Amount Paid:</span>
+                    <span class="font-bold text-green-600">₹{{ amount_paid|floatformat:0 }}</span>
+                </div>
+                {% endif %}
+                {% if current_month_status == 'partial' and amount_paid < current_month_invoice.total %}
+                <div class="flex justify-between items-center text-sm mt-1">
+                    <span class="text-gray-600">Balance Due:</span>
+                    <span class="font-bold text-red-600">₹{{ current_month_invoice.total|add:"-"|add:amount_paid|floatformat:0 }}</span>
+                </div>
+                {% endif %}
+            </div>
+        </form>
+    </div>
+
+    <!-- Electricity Meter Readings (Inline Editable) -->
+    <div class="bg-gradient-to-r from-yellow-50 to-amber-100 border-2 border-yellow-200 rounded-lg p-5">
+        <h4 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+            <svg class="w-5 h-5 mr-2 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+            </svg>
+            Electricity Meter
+        </h4>
+        
+        <!-- Current Readings Display -->
+        <div class="mb-4 grid grid-cols-2 gap-3 text-sm">
+            {% if latest_reading %}
+            <div class="bg-white p-3 rounded-lg">
+                <p class="text-gray-600 mb-1">Latest Reading</p>
+                <p class="text-2xl font-bold text-gray-900">{{ latest_reading.reading_value|floatformat:0 }}</p>
+                <p class="text-xs text-gray-500 mt-1">{{ latest_reading.reading_date|date:"M d, Y" }}</p>
+            </div>
+            {% else %}
+            <div class="bg-white p-3 rounded-lg">
+                <p class="text-gray-600 mb-1">Latest Reading</p>
+                <p class="text-lg text-gray-400 italic">No reading</p>
+            </div>
+            {% endif %}
+            
+            {% if previous_reading %}
+            <div class="bg-white p-3 rounded-lg">
+                <p class="text-gray-600 mb-1">Previous Reading</p>
+                <p class="text-2xl font-bold text-gray-900">{{ previous_reading.reading_value|floatformat:0 }}</p>
+                <p class="text-xs text-gray-500 mt-1">{{ previous_reading.reading_date|date:"M d, Y" }}</p>
+            </div>
+            {% else %}
+            <div class="bg-white p-3 rounded-lg">
+                <p class="text-gray-600 mb-1">Previous Reading</p>
+                <p class="text-lg text-gray-400 italic">No reading</p>
+            </div>
+            {% endif %}
+        </div>
+        
+        <!-- Units Used Display -->
+        {% if units_used %}
+        <div class="mb-4 bg-white p-3 rounded-lg">
+            <div class="flex justify-between items-center">
+                <span class="text-gray-600">Units Used:</span>
+                <span class="text-xl font-bold text-yellow-600">{{ units_used|floatformat:0 }} kWh</span>
+            </div>
+        </div>
+        {% endif %}
+        
+        <!-- Add New Reading Form -->
+        <form hx-post="{% url 'add_meter_reading_inline' room.id %}" 
+              hx-target="#room-drawer-content" 
+              hx-swap="innerHTML"
+              class="mt-4">
+            {% csrf_token %}
+            <label class="block text-sm font-medium text-gray-700 mb-2">Add New Reading</label>
+            <div class="grid grid-cols-2 gap-2 mb-2">
+                <input type="number" 
+                       name="reading_value" 
+                       placeholder="Reading value"
+                       step="0.01"
+                       required
+                       class="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 min-h-[44px]">
+                <input type="date" 
+                       name="reading_date" 
+                       value="{{ 'now'|date:'Y-m-d' }}"
+                       required
+                       class="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 min-h-[44px]">
+            </div>
+            <button type="submit" class="w-full px-4 py-3 bg-yellow-600 text-white font-medium rounded-lg hover:bg-yellow-700 transition-all duration-200 min-h-[44px]">
+                Save Meter Reading
+            </button>
+        </form>
+    </div>
+
+    <!-- Recent Bills History -->
+    <div class="bg-white border-2 border-gray-200 rounded-lg p-5">
+        <h4 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+            <svg class="w-5 h-5 mr-2 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+            </svg>
+            Payment History
+        </h4>
+        
+        {% if recent_invoices %}
+        <div class="space-y-2">
+            {% for invoice_data in recent_invoices %}
+            <div class="flex justify-between items-center p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                <div>
+                    <p class="text-sm font-medium text-gray-900">{{ invoice_data.period }}</p>
+                    <p class="text-xs text-gray-500">Due: {{ invoice_data.due_date|date:"M d, Y" }}</p>
+                </div>
+                <div class="text-right">
+                    <p class="text-sm font-bold text-gray-900">₹{{ invoice_data.total|floatformat:0 }}</p>
+                    {% if invoice_data.status == 'paid' %}
+                        <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">
+                            Paid
+                        </span>
+                    {% else %}
+                        <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800">
+                            Unpaid
+                        </span>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <p class="text-sm text-gray-500 italic text-center py-4">No payment history available.</p>
+        {% endif %}
+    </div>
+
+    {% else %}
+    <!-- No Active Lease -->
+    <div class="bg-yellow-50 border-2 border-yellow-200 rounded-lg p-6 text-center">
+        <svg class="mx-auto h-12 w-12 text-yellow-600 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+        </svg>
+        <h4 class="text-lg font-semibold text-gray-900 mb-2">No Active Lease</h4>
+        <p class="text-sm text-gray-600 mb-4">This room is currently vacant. Create a lease to manage tenant, rent, and bills.</p>
+        <a href="{% url 'leases' %}" 
+           class="inline-flex items-center px-4 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-all duration-200 min-h-[44px]">
+            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+            </svg>
+            Create Lease
+        </a>
+    </div>
+    {% endif %}
+
+    <!-- Messages Display -->
+    {% if messages %}
+    <div class="space-y-2">
+        {% for message in messages %}
+        <div class="bg-{% if message.tags == 'success' %}green{% elif message.tags == 'error' %}red{% else %}blue{% endif %}-50 border border-{% if message.tags == 'success' %}green{% elif message.tags == 'error' %}red{% else %}blue{% endif %}-200 text-{% if message.tags == 'success' %}green{% elif message.tags == 'error' %}red{% else %}blue{% endif %}-800 px-4 py-3 rounded-lg text-sm">
+            {{ message }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+</div>

@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Invoice {{ invoice.id }}</title>
+</head>
+<body>
+    <div class="header">
+        <div class="invoice-title">{{ invoice.type|title }} Invoice</div>
+        <div class="invoice-number">Invoice #{{ invoice.id }} | {{ invoice.month|date:"F Y" }}</div>
+    </div>
+
+    <div class="org-info">
+        <div class="org-name">{{ org_name }}</div>
+        {% if org_address %}
+        <div class="org-address">{{ org_address }}</div>
+        {% endif %}
+        {% if gstin %}
+        <div class="gstin">GSTIN: {{ gstin }}</div>
+        {% endif %}
+    </div>
+
+    <div class="invoice-details">
+        <div class="detail-row">
+            <div class="detail-label">Room:</div>
+            <div class="detail-value">{{ room.room_number }} - {{ building.name }} (Floor {{ floor.floor_number }})</div>
+        </div>
+        {% if tenant_info %}
+        <div class="detail-row">
+            <div class="detail-label">Tenant:</div>
+            <div class="detail-value">{{ tenant_info.name }}</div>
+        </div>
+        <div class="detail-row">
+            <div class="detail-label">Phone:</div>
+            <div class="detail-value">{{ tenant_info.phone }}</div>
+        </div>
+        {% if tenant_info.email %}
+        <div class="detail-row">
+            <div class="detail-label">Email:</div>
+            <div class="detail-value">{{ tenant_info.email }}</div>
+        </div>
+        {% endif %}
+        {% endif %}
+        <div class="detail-row">
+            <div class="detail-label">Invoice Date:</div>
+            <div class="detail-value">{{ generated_at|date:"F d, Y" }}</div>
+        </div>
+    </div>
+
+    <table class="items-table">
+        <thead>
+            <tr>
+                <th>Description</th>
+                <th>Quantity</th>
+                <th>Rate</th>
+                <th>Amount</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in invoice.items.all %}
+            <tr>
+                <td>{{ item.label }}</td>
+                <td class="text-right">{{ item.qty }}</td>
+                <td class="text-right">{{ currency_symbol }}{{ item.rate }}</td>
+                <td class="text-right">{{ currency_symbol }}{{ item.amount }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <div class="totals">
+        <div class="total-row">
+            <div class="total-label">Subtotal:</div>
+            <div class="total-value">{{ currency_symbol }}{{ invoice.subtotal }}</div>
+        </div>
+        {% if invoice.tax > 0 %}
+        <div class="total-row">
+            <div class="total-label">Tax:</div>
+            <div class="total-value">{{ currency_symbol }}{{ invoice.tax }}</div>
+        </div>
+        {% endif %}
+        <div class="total-row grand-total">
+            <div class="total-label">Total:</div>
+            <div class="total-value">{{ currency_symbol }}{{ invoice.total }}</div>
+        </div>
+    </div>
+
+    <div class="footer">
+        <p>Generated on {{ generated_at|date:"F d, Y \a\t g:i A" }}</p>
+        <p>Thank you for your business!</p>
+    </div>
+</body>
+</html>

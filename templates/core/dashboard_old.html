@@ -1,0 +1,282 @@
+{% extends 'core/base.html' %}
+
+{% block title %}Dashboard - Rental Management System{% endblock %}
+
+{% block content %}
+<!-- Main Container -->
+<main class="container mx-auto px-3 sm:px-4 lg:px-8 py-4 sm:py-6 lg:py-8 max-w-7xl">
+    <!-- Page Header -->
+    <header class="mb-4 sm:mb-6 lg:mb-8">
+        <h1 class="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 mb-1 sm:mb-2">Dashboard</h1>
+        <p class="text-sm sm:text-base text-gray-600">Welcome back! Here's an overview of your rental properties.</p>
+    </header>
+
+    <!-- KPI Stats Cards with UIverse.io Style -->
+    <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6 mb-4 sm:mb-6 lg:mb-8 animate-slide-in">
+        <!-- Total Rooms Card - Modern 3D Effect -->
+        <div class="card-hover bg-white p-4 sm:p-5 lg:p-6 rounded-lg sm:rounded-xl shadow-lg border-2 border-indigo-100 relative overflow-hidden group">
+            <!-- Gradient overlay on hover -->
+            <div class="absolute inset-0 bg-gradient-to-br from-indigo-50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+            
+            <div class="relative z-10 flex items-center justify-between">
+                <div>
+                    <p class="text-gray-500 text-xs sm:text-sm font-medium mb-1">Total Rooms</p>
+                    <p class="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-indigo-600 to-indigo-700 bg-clip-text text-transparent">{{ total_rooms }}</p>
+                    <div class="w-12 h-1 bg-gradient-to-r from-indigo-500 to-transparent rounded-full mt-2"></div>
+                </div>
+                <div class="w-12 h-12 sm:w-14 sm:h-14 bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-2xl flex items-center justify-center flex-shrink-0 shadow-lg hover-bounce">
+                    <svg class="w-6 h-6 sm:w-7 sm:h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
+                    </svg>
+                </div>
+            </div>
+        </div>
+
+        <!-- Occupied Card - Success Theme -->
+        <div class="card-hover bg-white p-4 sm:p-5 lg:p-6 rounded-lg sm:rounded-xl shadow-lg border-2 border-green-100 relative overflow-hidden group">
+            <div class="absolute inset-0 bg-gradient-to-br from-green-50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+            
+            <div class="relative z-10 flex items-center justify-between">
+                <div>
+                    <p class="text-gray-500 text-xs sm:text-sm font-medium mb-1">Occupied</p>
+                    <p class="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-green-600 to-green-700 bg-clip-text text-transparent">{{ occupied_rooms }}</p>
+                    <div class="flex items-center gap-2 mt-2">
+                        <div class="w-12 h-1 bg-gradient-to-r from-green-500 to-transparent rounded-full"></div>
+                        <p class="text-[10px] sm:text-xs text-green-600 font-semibold">{{ occupied_rooms|add:0|floatformat:0 }}%</p>
+                    </div>
+                </div>
+                <div class="w-12 h-12 sm:w-14 sm:h-14 bg-gradient-to-br from-green-500 to-green-600 rounded-2xl flex items-center justify-center flex-shrink-0 shadow-lg hover-bounce">
+                    <svg class="w-6 h-6 sm:w-7 sm:h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                </div>
+            </div>
+        </div>
+
+        <!-- Vacant Card - Warning Theme -->
+        <div class="card-hover bg-white p-4 sm:p-5 lg:p-6 rounded-lg sm:rounded-xl shadow-lg border-2 border-amber-100 relative overflow-hidden group">
+            <div class="absolute inset-0 bg-gradient-to-br from-amber-50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+            
+            <div class="relative z-10 flex items-center justify-between">
+                <div>
+                    <p class="text-gray-500 text-xs sm:text-sm font-medium mb-1">Vacant</p>
+                    <p class="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-amber-600 to-amber-700 bg-clip-text text-transparent">{{ vacant_rooms }}</p>
+                    <div class="flex items-center gap-2 mt-2">
+                        <div class="w-12 h-1 bg-gradient-to-r from-amber-500 to-transparent rounded-full"></div>
+                        <p class="text-[10px] sm:text-xs text-amber-600 font-semibold">Available</p>
+                    </div>
+                </div>
+                <div class="w-12 h-12 sm:w-14 sm:h-14 bg-gradient-to-br from-amber-500 to-amber-600 rounded-2xl flex items-center justify-center flex-shrink-0 shadow-lg hover-bounce">
+                    <svg class="w-6 h-6 sm:w-7 sm:h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                    </svg>
+                </div>
+            </div>
+        </div>
+
+        <!-- Monthly Rent Card - Premium Gradient -->
+        <div class="card-hover relative overflow-hidden p-4 sm:p-5 lg:p-6 rounded-lg sm:rounded-xl shadow-lg group">
+            <!-- Animated gradient background -->
+            <div class="absolute inset-0 bg-gradient-to-br from-purple-600 via-indigo-600 to-blue-600 opacity-90"></div>
+            <div class="absolute inset-0 bg-gradient-to-tr from-purple-400/20 via-transparent to-blue-400/20"></div>
+            
+            <!-- Animated shimmer effect -->
+            <div class="absolute inset-0 opacity-20 group-hover:opacity-30 transition-opacity duration-500">
+                <div class="skeleton w-full h-full"></div>
+            </div>
+            
+            <div class="relative z-10 flex items-center justify-between">
+                <div class="text-white">
+                    <p class="text-white/80 text-xs sm:text-sm font-medium mb-1">Monthly Rent Due</p>
+                    <p class="text-2xl sm:text-3xl font-bold drop-shadow-lg">₹{{ total_monthly_rent|floatformat:0 }}</p>
+                    <div class="flex items-center gap-2 mt-2">
+                        <div class="w-12 h-1 bg-white/40 rounded-full"></div>
+                        <p class="text-[10px] sm:text-xs text-white/90 font-semibold">Expected</p>
+                    </div>
+                </div>
+                <div class="w-12 h-12 sm:w-14 sm:h-14 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center flex-shrink-0 shadow-2xl hover-bounce border border-white/30">
+                    <svg class="w-6 h-6 sm:w-7 sm:h-7 text-white drop-shadow-lg" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"></path>
+                    </svg>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Chart and Quick Actions Row -->
+    <section class="grid grid-cols-1 lg:grid-cols-3 gap-3 sm:gap-4 lg:gap-6 mb-4 sm:mb-6 lg:mb-8">
+        <!-- Monthly Collections Chart -->
+        <div class="lg:col-span-2 bg-white p-4 sm:p-5 lg:p-6 rounded-lg sm:rounded-xl shadow-md border border-gray-100">
+            <div class="flex items-center justify-between mb-4 sm:mb-6">
+                <h3 class="text-base sm:text-lg font-semibold text-gray-900">Monthly Collections</h3>
+                <span class="text-xs sm:text-sm text-gray-500">Last 6 Months</span>
+            </div>
+            <div class="h-48 sm:h-56 lg:h-64 flex items-end justify-between gap-2 sm:gap-3">
+                {% for data in monthly_collections %}
+                <div class="flex-1 flex flex-col items-center group">
+                    <div class="w-full bg-gradient-to-t from-indigo-500 to-indigo-400 rounded-t-lg hover:from-indigo-600 hover:to-indigo-500 transition-colors duration-200 shadow-sm" 
+                         style="height: calc({{ data.amount|floatformat:0|default:10 }}px); max-height: 200px; min-height: 20px;"></div>
+                    <div class="text-[10px] sm:text-xs text-gray-600 mt-2 sm:mt-3 text-center">
+                        <div class="font-medium text-gray-700">{{ data.month }}</div>
+                        <div class="text-indigo-600 font-semibold hidden sm:block">₹{{ data.amount|floatformat:0 }}</div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Quick Actions Card - UIverse.io Style -->
+        <div class="card-hover bg-white p-4 sm:p-5 lg:p-6 rounded-lg sm:rounded-xl shadow-lg border-2 border-gray-100">
+            <h3 class="text-base sm:text-lg font-semibold text-gray-900 mb-3 sm:mb-4 flex items-center gap-2">
+                <span class="w-8 h-8 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-lg flex items-center justify-center">
+                    <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                    </svg>
+                </span>
+                Quick Actions
+            </h3>
+            <div class="space-y-2 sm:space-y-3">
+                <!-- Primary Action Button -->
+                <a href="{% url 'map' %}" class="ripple btn-3d group relative block w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white rounded-xl px-3 sm:px-4 py-3 sm:py-3.5 text-center text-sm sm:text-base font-semibold transition-all duration-300 shadow-lg hover:shadow-xl overflow-hidden">
+                    <span class="relative z-10 flex items-center justify-center gap-2">
+                        <svg class="w-4 h-4 group-hover:rotate-12 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"></path>
+                        </svg>
+                        View Room Map
+                    </span>
+                </a>
+                
+                <!-- Secondary Action Buttons with Modern Border Effect -->
+                <a href="{% url 'meter_bulk' %}" class="neon-border group block w-full bg-white hover:bg-gradient-to-r hover:from-indigo-50 hover:to-purple-50 rounded-xl px-3 sm:px-4 py-2.5 sm:py-3 text-center text-sm sm:text-base font-semibold transition-all duration-300 shadow-sm hover:shadow-md">
+                    <span class="bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent group-hover:from-indigo-700 group-hover:to-purple-700 flex items-center justify-center gap-2">
+                        <svg class="w-4 h-4 text-indigo-600 group-hover:scale-110 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                        </svg>
+                        Bulk Meter Reading
+                    </span>
+                </a>
+                
+                <a href="{% url 'tenants' %}" class="neon-border group block w-full bg-white hover:bg-gradient-to-r hover:from-indigo-50 hover:to-purple-50 rounded-xl px-3 sm:px-4 py-2.5 sm:py-3 text-center text-sm sm:text-base font-semibold transition-all duration-300 shadow-sm hover:shadow-md">
+                    <span class="bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent group-hover:from-indigo-700 group-hover:to-purple-700 flex items-center justify-center gap-2">
+                        <svg class="w-4 h-4 text-indigo-600 group-hover:scale-110 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
+                        </svg>
+                        Manage Tenants
+                    </span>
+                </a>
+                
+                <a href="{% url 'leases' %}" class="neon-border group block w-full bg-white hover:bg-gradient-to-r hover:from-indigo-50 hover:to-purple-50 rounded-xl px-3 sm:px-4 py-2.5 sm:py-3 text-center text-sm sm:text-base font-semibold transition-all duration-300 shadow-sm hover:shadow-md">
+                    <span class="bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent group-hover:from-indigo-700 group-hover:to-purple-700 flex items-center justify-center gap-2">
+                        <svg class="w-4 h-4 text-indigo-600 group-hover:scale-110 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                        </svg>
+                        View Leases
+                    </span>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Recent Activity and Reports -->
+    <section class="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4 lg:gap-6">
+        <!-- Recent Activity -->
+        <div class="bg-white p-4 sm:p-5 lg:p-6 rounded-lg sm:rounded-xl shadow-md border border-gray-100">
+            <h3 class="text-base sm:text-lg font-semibold text-gray-900 mb-3 sm:mb-4">Recent Activity</h3>
+            <div class="space-y-3 sm:space-y-4">
+                <div class="flex items-start">
+                    <div class="flex-shrink-0 w-9 h-9 sm:w-10 sm:h-10 bg-green-100 rounded-full flex items-center justify-center">
+                        <span class="text-base sm:text-lg">💰</span>
+                    </div>
+                    <div class="ml-3 sm:ml-4">
+                        <p class="text-xs sm:text-sm font-medium text-gray-900">Last 30 Days Collections</p>
+                        <p class="text-base sm:text-lg font-bold text-green-600">₹{{ total_collections|floatformat:0 }}</p>
+                    </div>
+                </div>
+                
+                <div class="flex items-start">
+                    <div class="flex-shrink-0 w-9 h-9 sm:w-10 sm:h-10 bg-yellow-100 rounded-full flex items-center justify-center">
+                        <span class="text-base sm:text-lg">🔧</span>
+                    </div>
+                    <div class="ml-3 sm:ml-4">
+                        <p class="text-xs sm:text-sm font-medium text-gray-900">Under Maintenance</p>
+                        <p class="text-base sm:text-lg font-bold text-yellow-600">{{ maintenance_rooms }} rooms</p>
+                    </div>
+                </div>
+                
+                <div class="flex items-start">
+                    <div class="flex-shrink-0 w-9 h-9 sm:w-10 sm:h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                        <span class="text-base sm:text-lg">📄</span>
+                    </div>
+                    <div class="ml-3 sm:ml-4">
+                        <p class="text-xs sm:text-sm font-medium text-gray-900">Active Leases</p>
+                        <p class="text-base sm:text-lg font-bold text-blue-600">{{ occupied_rooms }} leases</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Reports -->
+        <div class="bg-white p-4 sm:p-5 lg:p-6 rounded-lg sm:rounded-xl shadow-md border border-gray-100">
+            <h3 class="text-base sm:text-lg font-semibold text-gray-900 mb-3 sm:mb-4">Reports</h3>
+            <div class="space-y-2 sm:space-y-3">
+                <a href="{% url 'reports_rent_collection' %}" class="group block border-2 border-gray-200 hover:border-indigo-500 hover:shadow-md rounded-lg p-3 sm:p-4 transition-all duration-200">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center">
+                            <div class="w-9 h-9 sm:w-10 sm:h-10 bg-indigo-100 rounded-lg flex items-center justify-center mr-2 sm:mr-3 flex-shrink-0">
+                                <svg class="w-4 h-4 sm:w-5 sm:h-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
+                                </svg>
+                            </div>
+                            <div>
+                                <p class="text-sm sm:text-base font-medium text-gray-900 group-hover:text-indigo-600">Rent Collection</p>
+                                <p class="text-[10px] sm:text-xs text-gray-500">View payment history</p>
+                            </div>
+                        </div>
+                        <svg class="w-4 h-4 sm:w-5 sm:h-5 text-gray-400 group-hover:text-indigo-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                        </svg>
+                    </div>
+                </a>
+                
+                <a href="{% url 'reports_electricity' %}" class="group block border-2 border-gray-200 hover:border-indigo-500 hover:shadow-md rounded-lg p-3 sm:p-4 transition-all duration-200">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center">
+                            <div class="w-9 h-9 sm:w-10 sm:h-10 bg-yellow-100 rounded-lg flex items-center justify-center mr-2 sm:mr-3 flex-shrink-0">
+                                <svg class="w-4 h-4 sm:w-5 sm:h-5 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                                </svg>
+                            </div>
+                            <div>
+                                <p class="text-sm sm:text-base font-medium text-gray-900 group-hover:text-indigo-600">Electricity Usage</p>
+                                <p class="text-[10px] sm:text-xs text-gray-500">View consumption data</p>
+                            </div>
+                        </div>
+                        <svg class="w-4 h-4 sm:w-5 sm:h-5 text-gray-400 group-hover:text-indigo-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                        </svg>
+                    </div>
+                </a>
+
+                <a href="{% url 'billing' %}" class="group block border-2 border-gray-200 hover:border-indigo-500 hover:shadow-md rounded-lg p-3 sm:p-4 transition-all duration-200">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center">
+                            <div class="w-9 h-9 sm:w-10 sm:h-10 bg-green-100 rounded-lg flex items-center justify-center mr-2 sm:mr-3 flex-shrink-0">
+                                <svg class="w-4 h-4 sm:w-5 sm:h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 14l6-6m-5.5.5h.01m4.99 5h.01M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16l3.5-2 3.5 2 3.5-2 3.5 2z"></path>
+                                </svg>
+                            </div>
+                            <div>
+                                <p class="text-sm sm:text-base font-medium text-gray-900 group-hover:text-indigo-600">Generate Invoices</p>
+                                <p class="text-[10px] sm:text-xs text-gray-500">Create billing invoices</p>
+                            </div>
+                        </div>
+                        <svg class="w-4 h-4 sm:w-5 sm:h-5 text-gray-400 group-hover:text-indigo-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                        </svg>
+                    </div>
+                </a>
+            </div>
+        </div>
+    </section>
+</main>
+{% endblock %}

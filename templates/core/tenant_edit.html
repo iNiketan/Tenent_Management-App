@@ -1,0 +1,45 @@
+{% extends 'core/base.html' %}
+
+{% block title %}Tenant Edit - Rental Management System{% endblock %}
+
+{% block content %}
+<div class="px-4 py-6 sm:px-0">
+    <div class="border-4 border-dashed border-gray-200 rounded-lg p-6">
+        <div class="flex justify-between items-center mb-6">
+            <h1 class="text-2xl font-bold text-gray-900">Edit Tenant</h1>
+            <a href="{% url 'tenants' %}" class="btn-secondary">Back to Tenants</a>
+        </div>
+
+        <form method="post" class="space-y-6">
+            {% csrf_token %}
+            
+            <div class="card">
+                <h3 class="text-lg font-medium text-gray-900 mb-4">Tenant Information</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label for="id_full_name" class="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
+                        {{ form.full_name }}
+                    </div>
+                    <div>
+                        <label for="id_phone" class="block text-sm font-medium text-gray-700 mb-1">Phone</label>
+                        {{ form.phone }}
+                    </div>
+                    <div>
+                        <label for="id_email" class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                        {{ form.email }}
+                    </div>
+                    <div>
+                        <label for="id_id_proof_url" class="block text-sm font-medium text-gray-700 mb-1">ID Proof URL</label>
+                        {{ form.id_proof_url }}
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex justify-end space-x-3">
+                <a href="{% url 'tenants' %}" class="btn-secondary">Cancel</a>
+                <button type="submit" class="btn-primary">Update Tenant</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

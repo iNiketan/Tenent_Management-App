@@ -1,0 +1,16 @@
+<!-- Meter Reading Form -->
+<form hx-post="{% url 'add_meter_reading' room.id %}" hx-target="#meter-reading-form" hx-swap="innerHTML" class="mt-3 space-y-3">
+    {% csrf_token %}
+    <div>
+        <label for="id_reading_date" class="block text-sm font-medium text-gray-700">Reading Date</label>
+        {{ form.reading_date }}
+    </div>
+    <div>
+        <label for="id_reading_value" class="block text-sm font-medium text-gray-700">Reading Value</label>
+        {{ form.reading_value }}
+    </div>
+    <div class="flex space-x-2">
+        <button type="submit" class="btn-primary">Save</button>
+        <button type="button" onclick="this.closest('div').innerHTML=''" class="btn-secondary">Cancel</button>
+    </div>
+</form>

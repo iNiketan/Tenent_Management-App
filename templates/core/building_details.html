@@ -1,0 +1,186 @@
+{% extends 'core/base.html' %}
+
+{% block title %}{{ building.name }} - Building Details{% endblock %}
+
+{% block content %}
+<div class="px-4 py-6 sm:px-6 lg:px-8" x-data="{ showFloorsTable: false }">
+    <!-- Header -->
+    <div class="mb-6">
+        <div class="flex items-center justify-between">
+            <div>
+                <h1 class="text-3xl font-bold text-gray-900">{{ building.name }}</h1>
+                <p class="mt-2 text-sm text-gray-600">
+                    {{ rooms_with_snapshot|length }} room{{ rooms_with_snapshot|length|pluralize }} across {{ floors|length }} floor{{ floors|length|pluralize }}
+                </p>
+            </div>
+            <a href="{% url 'map' %}" class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-lg shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-200">
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+                </svg>
+                Back to Map
+            </a>
+        </div>
+    </div>
+
+    <!-- View Toggle -->
+    <div class="mb-6">
+        <button 
+            @click="showFloorsTable = !showFloorsTable" 
+            class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-lg shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-200 min-h-[44px]">
+            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"></path>
+            </svg>
+            <span x-text="showFloorsTable ? 'View All Rooms (Grid)' : 'View by Floors (Table)'"></span>
+        </button>
+    </div>
+
+    <!-- Section A: All Rooms Grid (Default View) -->
+    <div x-show="!showFloorsTable" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 transform scale-95" x-transition:enter-end="opacity-100 transform scale-100">
+        <h2 class="text-xl font-semibold text-gray-900 mb-4">All Rooms</h2>
+        
+        <!-- Legend -->
+        <div class="mb-4 flex flex-wrap gap-3 text-sm">
+            <div class="flex items-center">
+                <span class="inline-block w-3 h-3 rounded-full bg-green-500 mr-2"></span>
+                <span class="text-gray-600">OK</span>
+            </div>
+            <div class="flex items-center">
+                <span class="inline-block w-3 h-3 rounded-full bg-orange-500 mr-2"></span>
+                <span class="text-gray-600">Due Soon</span>
+            </div>
+            <div class="flex items-center">
+                <span class="inline-block w-3 h-3 rounded-full bg-red-500 mr-2"></span>
+                <span class="text-gray-600">Overdue</span>
+            </div>
+            <div class="flex items-center">
+                <span class="inline-block w-3 h-3 rounded-full bg-gray-400 mr-2"></span>
+                <span class="text-gray-600">Vacant</span>
+            </div>
+            <div class="flex items-center">
+                <span class="inline-block w-3 h-3 rounded-full bg-yellow-500 mr-2"></span>
+                <span class="text-gray-600">Maintenance</span>
+            </div>
+        </div>
+
+        <!-- Rooms Grid -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+            {% for snapshot in rooms_with_snapshot %}
+            <a href="{% url 'room_details_page' snapshot.room.id %}"
+                id="room-card-{{ snapshot.room.id }}"
+                class="bg-white border-2 border-gray-200 rounded-lg p-4 hover:shadow-lg hover:border-blue-400 transition-all duration-200 block min-h-[44px]">
+                
+                <!-- Room Header -->
+                <div class="flex justify-between items-start mb-3">
+                    <div>
+                        <h3 class="text-lg font-bold text-gray-900">Room {{ snapshot.room.room_number }}</h3>
+                        <p class="text-xs text-gray-500">Floor {{ snapshot.room.floor.floor_number }}</p>
+                    </div>
+                    <span class="px-3 py-1 text-xs font-semibold rounded-full {{ snapshot.badge_class }} min-h-[28px] flex items-center">
+                        {{ snapshot.badge }}
+                    </span>
+                </div>
+
+                <!-- Status Pill -->
+                <div class="mb-3">
+                    {% if snapshot.room.status == 'occupied' %}
+                        <span class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-full bg-blue-100 text-blue-800">
+                            Occupied
+                        </span>
+                    {% elif snapshot.room.status == 'vacant' %}
+                        <span class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-full bg-gray-100 text-gray-700">
+                            Vacant
+                        </span>
+                    {% else %}
+                        <span class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-full bg-yellow-100 text-yellow-800">
+                            Maintenance
+                        </span>
+                    {% endif %}
+                </div>
+
+                <!-- Tenant Info -->
+                {% if snapshot.tenant_name %}
+                <div class="mb-3">
+                    <p class="text-sm font-medium text-gray-900">{{ snapshot.tenant_name }}</p>
+                    <p class="text-sm text-gray-600">₹{{ snapshot.rent|floatformat:0 }}/month</p>
+                </div>
+                {% else %}
+                <div class="mb-3">
+                    <p class="text-sm text-gray-500 italic">No active lease</p>
+                </div>
+                {% endif %}
+
+                <!-- Last Bill Info -->
+                {% if snapshot.last_invoice %}
+                <div class="pt-3 border-t border-gray-200">
+                    <div class="flex justify-between items-start text-xs">
+                        <div>
+                            <p class="text-gray-500">Last Bill</p>
+                            <p class="font-medium text-gray-900">{{ snapshot.last_invoice_period }}</p>
+                        </div>
+                        <div class="text-right">
+                            <p class="text-gray-500">Status</p>
+                            {% if snapshot.last_invoice_status == 'paid' %}
+                                <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">
+                                    Paid
+                                </span>
+                            {% else %}
+                                <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800">
+                                    Unpaid
+                                </span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% if snapshot.last_invoice_elec_units %}
+                    <p class="text-xs text-gray-500 mt-1">Elec: {{ snapshot.last_invoice_elec_units|floatformat:0 }} units</p>
+                    {% endif %}
+                </div>
+                {% endif %}
+            </a>
+            {% empty %}
+            <div class="col-span-full text-center py-12">
+                <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
+                </svg>
+                <p class="mt-4 text-gray-500">No rooms found in this building.</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Section B: Floors Table View (Collapsible) -->
+    <div x-show="showFloorsTable" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 transform scale-95" x-transition:enter-end="opacity-100 transform scale-100">
+        <h2 class="text-xl font-semibold text-gray-900 mb-4">Floors View</h2>
+        
+        <div class="space-y-6">
+            {% for floor in floors %}
+            <div class="bg-white rounded-lg shadow-sm border border-gray-200" x-data="{ floorOpen: true }">
+                <!-- Floor Header -->
+                <div class="px-6 py-4 border-b border-gray-200 flex justify-between items-center cursor-pointer min-h-[44px]" @click="floorOpen = !floorOpen">
+                    <h3 class="text-lg font-semibold text-gray-900">Floor {{ floor.floor_number }}</h3>
+                    <svg class="w-5 h-5 text-gray-500 transform transition-transform" :class="floorOpen ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                    </svg>
+                </div>
+                
+                <!-- Floor Content (Loaded via HTMX) -->
+                <div x-show="floorOpen" x-transition>
+                    <div 
+                        id="floor-{{ floor.floor_number }}-content"
+                        hx-get="{% url 'building_floor_partial' building.id floor.floor_number %}"
+                        hx-trigger="intersect once"
+                        class="p-6">
+                        <div class="text-center py-4 text-gray-500">
+                            <svg class="animate-spin h-8 w-8 mx-auto text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+

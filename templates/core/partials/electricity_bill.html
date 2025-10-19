@@ -1,0 +1,31 @@
+<!-- Electricity Bill Display -->
+<div class="mt-3 bg-gray-50 rounded-lg p-4">
+    <h4 class="text-sm font-medium text-gray-700 mb-2">Electricity Bill for {{ month }}</h4>
+    
+    {% if error %}
+    <div class="text-red-600 text-sm">{{ error }}</div>
+    {% else %}
+    <div class="space-y-2 text-sm">
+        <div class="flex justify-between">
+            <span class="text-gray-600">Previous Reading:</span>
+            <span class="font-medium">{{ bill_data.previous_reading|default:"N/A" }}</span>
+        </div>
+        <div class="flex justify-between">
+            <span class="text-gray-600">Current Reading:</span>
+            <span class="font-medium">{{ bill_data.current_reading|default:"N/A" }}</span>
+        </div>
+        <div class="flex justify-between">
+            <span class="text-gray-600">Units Consumed:</span>
+            <span class="font-medium">{{ bill_data.units }}</span>
+        </div>
+        <div class="flex justify-between">
+            <span class="text-gray-600">Rate per Unit:</span>
+            <span class="font-medium">₹{{ bill_data.rate }}</span>
+        </div>
+        <div class="flex justify-between border-t border-gray-300 pt-2">
+            <span class="font-medium text-gray-900">Total Amount:</span>
+            <span class="font-bold text-lg">₹{{ bill_data.total }}</span>
+        </div>
+    </div>
+    {% endif %}
+</div>

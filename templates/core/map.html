@@ -1,0 +1,134 @@
+{% extends 'core/base.html' %}
+
+{% block title %}Room Map - Rental Management System{% endblock %}
+
+{% block content %}
+<div class="px-4 py-6 sm:px-0">
+    <div class="border-4 border-dashed border-gray-200 rounded-lg p-6">
+        <h1 class="text-2xl font-bold text-gray-900 mb-6">Room Map</h1>
+        
+        <!-- Buildings List -->
+        <div class="mb-8">
+            <h2 class="text-lg font-semibold text-gray-900 mb-4">Buildings</h2>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                {% for building in buildings %}
+                <a href="{% url 'building_details' building.id %}" class="bg-white border-2 border-gray-200 rounded-lg p-4 hover:shadow-lg hover:border-blue-400 transition-all duration-200 group">
+                    <div class="flex items-center justify-between mb-2">
+                        <h3 class="text-lg font-bold text-gray-900 group-hover:text-blue-600">{{ building.name }}</h3>
+                        <svg class="w-5 h-5 text-gray-400 group-hover:text-blue-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                        </svg>
+                    </div>
+                    <p class="text-sm text-gray-600">
+                        {{ building.floors.count }} floor{{ building.floors.count|pluralize }} · 
+                        {{ building.rooms.count }} room{{ building.rooms.count|pluralize }}
+                    </p>
+                </a>
+                {% empty %}
+                <div class="col-span-full text-center py-8">
+                    <p class="text-gray-500">No buildings found.</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        
+        <hr class="my-6 border-gray-300">
+        
+        <!-- Filters -->
+        <div class="mb-6 flex flex-wrap gap-4">
+            <div>
+                <label for="building-filter" class="block text-sm font-medium text-gray-700 mb-1">Building</label>
+                <select id="building-filter" class="form-select" onchange="filterRooms()">
+                    <option value="">All Buildings</option>
+                    {% for building in buildings %}
+                    <option value="{{ building.id }}" {% if selected_building == building.id|stringformat:"s" %}selected{% endif %}>{{ building.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <label for="floor-filter" class="block text-sm font-medium text-gray-700 mb-1">Floor</label>
+                <select id="floor-filter" class="form-select" onchange="filterRooms()">
+                    <option value="">All Floors</option>
+                    {% for floor in floors %}
+                    <option value="{{ floor.id }}" {% if selected_floor == floor.id|stringformat:"s" %}selected{% endif %}>{{ floor.building.name }} - Floor {{ floor.floor_number }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+
+        <!-- Room Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+            {% for room in rooms %}
+            <div class="card cursor-pointer hover:shadow-md transition-shadow" 
+                 hx-get="{% url 'room_drawer' room.id %}" 
+                 hx-target="#room-drawer" 
+                 hx-trigger="click">
+                <div class="flex justify-between items-start mb-2">
+                    <h3 class="font-medium text-gray-900">{{ room.room_number }}</h3>
+                    <span class="{% if room.status == 'vacant' %}status-vacant{% elif room.status == 'occupied' %}status-occupied{% else %}status-maintenance{% endif %}">
+                        {{ room.get_status_display }}
+                    </span>
+                </div>
+                <p class="text-sm text-gray-600 mb-2">{{ room.building.name }} - Floor {{ room.floor.floor_number }}</p>
+                
+                {% if room.current_tenant %}
+                <div class="text-sm">
+                    <p class="text-gray-700"><strong>Tenant:</strong> {{ room.current_tenant.name }}</p>
+                    <p class="text-gray-600">Lease ID: {{ room.current_tenant.lease_id }}</p>
+                </div>
+                {% else %}
+                <p class="text-sm text-gray-500">No active tenant</p>
+                {% endif %}
+                
+                {% if room.notes %}
+                <p class="text-xs text-gray-500 mt-2">{{ room.notes|truncatechars:50 }}</p>
+                {% endif %}
+            </div>
+            {% empty %}
+            <div class="col-span-full text-center py-8">
+                <p class="text-gray-500">No rooms found. Try adjusting your filters.</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<!-- Room Drawer -->
+<div id="room-drawer" class="fixed inset-y-0 right-0 w-96 bg-white shadow-lg transform translate-x-full transition-transform duration-300 ease-in-out z-50">
+    <!-- Drawer content will be loaded here via HTMX -->
+</div>
+
+<script>
+function filterRooms() {
+    const buildingId = document.getElementById('building-filter').value;
+    const floorId = document.getElementById('floor-filter').value;
+    
+    let url = '{% url "map" %}?';
+    if (buildingId) url += 'building=' + buildingId + '&';
+    if (floorId) url += 'floor=' + floorId + '&';
+    
+    window.location.href = url;
+}
+
+// Close drawer when clicking outside
+document.addEventListener('click', function(event) {
+    const drawer = document.getElementById('room-drawer');
+    const isClickInsideDrawer = drawer.contains(event.target);
+    const isClickOnRoomCard = event.target.closest('[hx-get]');
+    
+    if (!isClickInsideDrawer && !isClickOnRoomCard && drawer.classList.contains('translate-x-0')) {
+        drawer.classList.remove('translate-x-0');
+        drawer.classList.add('translate-x-full');
+    }
+});
+
+// Show drawer when content is loaded
+document.body.addEventListener('htmx:afterRequest', function(event) {
+    if (event.detail.xhr.status === 200 && event.detail.target.id === 'room-drawer') {
+        const drawer = document.getElementById('room-drawer');
+        drawer.classList.remove('translate-x-full');
+        drawer.classList.add('translate-x-0');
+    }
+});
+</script>
+{% endblock %}

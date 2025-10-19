@@ -1,0 +1,134 @@
+<!-- Room Drawer Partial -->
+<div class="h-full flex flex-col">
+    <!-- Header -->
+    <div class="flex items-center justify-between p-6 border-b border-gray-200">
+        <h2 class="text-lg font-medium text-gray-900">{{ room }}</h2>
+        <button onclick="closeDrawer()" class="text-gray-400 hover:text-gray-600">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+        </button>
+    </div>
+
+    <!-- Content -->
+    <div class="flex-1 overflow-y-auto p-6">
+        <!-- Room Status -->
+        <div class="mb-6">
+            <div class="flex items-center justify-between mb-2">
+                <span class="text-sm font-medium text-gray-700">Status</span>
+                <span class="{% if room.status == 'vacant' %}status-vacant{% elif room.status == 'occupied' %}status-occupied{% else %}status-maintenance{% endif %}">
+                    {{ room.get_status_display }}
+                </span>
+            </div>
+            {% if room.notes %}
+            <p class="text-sm text-gray-600">{{ room.notes }}</p>
+            {% endif %}
+        </div>
+
+        <!-- Active Lease -->
+        {% if active_lease %}
+        <div class="mb-6">
+            <h3 class="text-sm font-medium text-gray-700 mb-2">Active Lease</h3>
+            <div class="bg-gray-50 rounded-lg p-4">
+                <div class="flex justify-between items-start mb-2">
+                    <span class="font-medium text-gray-900">{{ active_lease.tenant.full_name }}</span>
+                    <span class="text-sm text-gray-600">₹{{ active_lease.monthly_rent }}/month</span>
+                </div>
+                <p class="text-sm text-gray-600 mb-2">{{ active_lease.tenant.phone }}</p>
+                <p class="text-xs text-gray-500">
+                    Started: {{ active_lease.start_date }}<br>
+                    {% if active_lease.end_date %}Ends: {{ active_lease.end_date }}{% else %}No end date{% endif %}
+                </p>
+            </div>
+        </div>
+
+        <!-- Recent Payments -->
+        {% if recent_payments %}
+        <div class="mb-6">
+            <h3 class="text-sm font-medium text-gray-700 mb-2">Recent Payments</h3>
+            <div class="space-y-2">
+                {% for payment in recent_payments %}
+                <div class="flex justify-between items-center text-sm">
+                    <span class="text-gray-600">{{ payment.paid_on }}</span>
+                    <span class="font-medium text-green-600">₹{{ payment.amount }}</span>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Meter Readings -->
+        {% if recent_readings %}
+        <div class="mb-6">
+            <h3 class="text-sm font-medium text-gray-700 mb-2">Recent Meter Readings</h3>
+            <div class="space-y-2">
+                {% for reading in recent_readings %}
+                <div class="flex justify-between items-center text-sm">
+                    <span class="text-gray-600">{{ reading.reading_date }}</span>
+                    <span class="font-medium">{{ reading.reading_value }} units</span>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Quick Actions -->
+        <div class="space-y-3">
+            <h3 class="text-sm font-medium text-gray-700">Quick Actions</h3>
+            
+            <!-- Add Meter Reading -->
+            <div>
+                <button class="w-full btn-secondary text-left" 
+                        hx-get="{% url 'add_meter_reading' room.id %}" 
+                        hx-target="#meter-reading-form" 
+                        hx-swap="innerHTML">
+                    Add Meter Reading
+                </button>
+                <div id="meter-reading-form"></div>
+            </div>
+
+            <!-- Record Rent Payment -->
+            {% if active_lease %}
+            <div>
+                <button class="w-full btn-secondary text-left" 
+                        hx-get="{% url 'record_rent_payment' active_lease.id %}" 
+                        hx-target="#rent-payment-form" 
+                        hx-swap="innerHTML">
+                    Record Rent Payment
+                </button>
+                <div id="rent-payment-form"></div>
+            </div>
+            {% endif %}
+
+            <!-- Compute Electricity Bill -->
+            <div>
+                <button class="w-full btn-secondary text-left" 
+                        hx-get="{% url 'compute_electricity_bill' room.id %}?month={{ 'now'|date:'Y-m' }}" 
+                        hx-target="#electricity-bill" 
+                        hx-swap="innerHTML">
+                    Compute Electricity Bill
+                </button>
+                <div id="electricity-bill"></div>
+            </div>
+
+            <!-- Generate Electricity Invoice -->
+            <div>
+                <button class="w-full btn-primary text-left" 
+                        hx-post="{% url 'generate_electricity_invoice' room.id %}?month={{ 'now'|date:'Y-m' }}" 
+                        hx-target="#invoice-result" 
+                        hx-swap="innerHTML">
+                    Generate Electricity Invoice
+                </button>
+                <div id="invoice-result"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function closeDrawer() {
+    const drawer = document.getElementById('room-drawer');
+    drawer.classList.remove('translate-x-0');
+    drawer.classList.add('translate-x-full');
+}
+</script>

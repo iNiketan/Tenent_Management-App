@@ -1,0 +1,180 @@
+{% extends 'core/base.html' %}
+
+{% block title %}Billing - Rental Management System{% endblock %}
+
+{% block content %}
+<div class="px-4 py-6 sm:px-0">
+    <div class="border-4 border-dashed border-gray-200 rounded-lg p-6">
+        <h1 class="text-2xl font-bold text-gray-900 mb-6">Billing</h1>
+        
+        <!-- Room and Month Selector -->
+        <div class="mb-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+                <label for="room-selector" class="block text-sm font-medium text-gray-700 mb-2">Select Room</label>
+                <select id="room-selector" class="form-select">
+                    <option value="">Choose a room...</option>
+                    {% for room in rooms %}
+                    <option value="{{ room.id }}">{{ room.room_number }} - {{ room.building.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <label for="month-selector" class="block text-sm font-medium text-gray-700 mb-2">Select Month</label>
+                <input type="month" id="month-selector" class="form-input" value="{{ 'now'|date:'Y-m' }}">
+            </div>
+        </div>
+
+        <!-- Calculate Bill Button -->
+        <div class="mb-6">
+            <button onclick="calculateBill()" class="btn-primary">Calculate Electricity Bill</button>
+        </div>
+
+        <!-- Bill Results -->
+        <div id="bill-results" class="hidden">
+            <div class="card mb-6">
+                <h3 class="text-lg font-medium text-gray-900 mb-4">Bill Calculation Results</h3>
+                <div id="bill-details"></div>
+                <div class="mt-4">
+                    <button onclick="generateInvoice()" class="btn-primary">Generate Invoice</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Invoice Results -->
+        <div id="invoice-results" class="hidden">
+            <div class="card">
+                <h3 class="text-lg font-medium text-gray-900 mb-4">Invoice Generated</h3>
+                <div id="invoice-details"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+let currentBillData = null;
+
+function calculateBill() {
+    const roomId = document.getElementById('room-selector').value;
+    const month = document.getElementById('month-selector').value;
+    
+    if (!roomId || !month) {
+        alert('Please select both room and month');
+        return;
+    }
+    
+    fetch('/api/billing/electricity/calc/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+        },
+        body: JSON.stringify({
+            room_id: parseInt(roomId),
+            month: month
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.error) {
+            alert('Error: ' + data.error);
+            return;
+        }
+        
+        currentBillData = data;
+        displayBillResults(data);
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('An error occurred while calculating the bill');
+    });
+}
+
+function displayBillResults(data) {
+    const billDetails = document.getElementById('bill-details');
+    billDetails.innerHTML = `
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+                <p class="text-sm text-gray-600">Room:</p>
+                <p class="font-medium">${data.room}</p>
+            </div>
+            <div>
+                <p class="text-sm text-gray-600">Month:</p>
+                <p class="font-medium">${data.month}</p>
+            </div>
+            <div>
+                <p class="text-sm text-gray-600">Previous Reading:</p>
+                <p class="font-medium">${data.previous_reading || 'N/A'}</p>
+            </div>
+            <div>
+                <p class="text-sm text-gray-600">Current Reading:</p>
+                <p class="font-medium">${data.current_reading || 'N/A'}</p>
+            </div>
+            <div>
+                <p class="text-sm text-gray-600">Units Consumed:</p>
+                <p class="font-medium">${data.units}</p>
+            </div>
+            <div>
+                <p class="text-sm text-gray-600">Rate per Unit:</p>
+                <p class="font-medium">₹${data.rate}</p>
+            </div>
+            <div class="md:col-span-2">
+                <p class="text-sm text-gray-600">Total Amount:</p>
+                <p class="text-2xl font-bold text-green-600">₹${data.total}</p>
+            </div>
+        </div>
+    `;
+    
+    document.getElementById('bill-results').classList.remove('hidden');
+}
+
+function generateInvoice() {
+    if (!currentBillData) {
+        alert('Please calculate the bill first');
+        return;
+    }
+    
+    const roomId = document.getElementById('room-selector').value;
+    const month = document.getElementById('month-selector').value;
+    
+    fetch('/api/invoices/electricity/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+        },
+        body: JSON.stringify({
+            room_id: parseInt(roomId),
+            month: month
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.error) {
+            alert('Error: ' + data.error);
+            return;
+        }
+        
+        displayInvoiceResults(data);
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('An error occurred while generating the invoice');
+    });
+}
+
+function displayInvoiceResults(data) {
+    const invoiceDetails = document.getElementById('invoice-details');
+    invoiceDetails.innerHTML = `
+        <div class="bg-green-50 border border-green-200 rounded-lg p-4">
+            <p class="text-green-800 font-medium">Invoice created successfully!</p>
+            <p class="text-green-700 text-sm mt-2">Invoice ID: ${data.invoice.id}</p>
+            <div class="mt-4">
+                <a href="/invoices/${data.invoice.id}/pdf/" class="btn-primary">Download PDF</a>
+            </div>
+        </div>
+    `;
+    
+    document.getElementById('invoice-results').classList.remove('hidden');
+}
+</script>
+{% endblock %}

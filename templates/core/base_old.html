@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Rental Management System{% endblock %}</title>
+    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+    <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/output.css' %}?v=5">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        
+        /* UIverse.io Inspired Animations */
+        @keyframes shimmer {
+            0% { background-position: -1000px 0; }
+            100% { background-position: 1000px 0; }
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+        
+        @keyframes glow {
+            0%, 100% { box-shadow: 0 0 5px rgba(99, 102, 241, 0.5), 0 0 10px rgba(99, 102, 241, 0.3); }
+            50% { box-shadow: 0 0 20px rgba(99, 102, 241, 0.8), 0 0 30px rgba(99, 102, 241, 0.5); }
+        }
+        
+        @keyframes slideInFromLeft {
+            0% { transform: translateX(-100%); opacity: 0; }
+            100% { transform: translateX(0); opacity: 1; }
+        }
+        
+        /* Modern Card Hover Effects */
+        .card-hover {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .card-hover:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+        
+        /* Gradient Button Effect */
+        .btn-gradient {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background-size: 200% 200%;
+            animation: gradient 3s ease infinite;
+        }
+        
+        @keyframes gradient {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        
+        /* Glassmorphism Effect */
+        .glass {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        /* Neon Glow Effect */
+        .neon-border {
+            border: 2px solid transparent;
+            background: linear-gradient(white, white) padding-box,
+                        linear-gradient(135deg, #667eea, #764ba2) border-box;
+        }
+        
+        /* Loading Skeleton */
+        .skeleton {
+            background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.5s infinite;
+        }
+        
+        /* Ripple Effect */
+        .ripple {
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .ripple:after {
+            content: "";
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.5);
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+        
+        .ripple:active:after {
+            width: 300px;
+            height: 300px;
+        }
+        
+        /* Modern Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 10px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+        }
+        
+        /* Pulse Animation for Icons */
+        .pulse-icon {
+            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: .5; }
+        }
+        
+        /* 3D Button Effect */
+        .btn-3d {
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
+                        0 2px 4px -1px rgba(0, 0, 0, 0.06),
+                        inset 0 -3px 0 0 rgba(0, 0, 0, 0.2);
+            transition: all 0.15s ease;
+        }
+        
+        .btn-3d:active {
+            box-shadow: inset 0 3px 0 0 rgba(0, 0, 0, 0.2);
+            transform: translateY(2px);
+        }
+        
+        /* Animated Gradient Background */
+        .gradient-bg {
+            background: linear-gradient(-45deg, #ee7752, #e73c7e, #23a6d5, #23d5ab);
+            background-size: 400% 400%;
+            animation: gradient-shift 15s ease infinite;
+        }
+        
+        @keyframes gradient-shift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        
+        /* Slide in animation for page load */
+        .animate-slide-in {
+            animation: slideInFromLeft 0.5s ease-out;
+        }
+        
+        /* Bounce animation */
+        @keyframes bounce-subtle {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-5px); }
+        }
+        
+        .hover-bounce:hover {
+            animation: bounce-subtle 0.5s ease-in-out;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen antialiased">
+    {% if user.is_authenticated %}
+    <!-- Sidebar Layout -->
+    <div class="flex h-screen overflow-hidden" x-data="{ sidebarOpen: false }">
+        <!-- Sidebar -->
+        <aside class="fixed inset-y-0 left-0 z-50 w-64 bg-slate-800 transform transition-transform duration-300 lg:translate-x-0 lg:static lg:inset-0" :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full'">
+            <!-- Sidebar Header -->
+            <div class="flex items-center justify-between h-16 px-6 bg-slate-900">
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
+                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
+                        </svg>
+                    </div>
+                    <span class="text-white font-bold text-lg">Tenant Manager</span>
+                </div>
+                <button @click="sidebarOpen = false" class="lg:hidden text-gray-400 hover:text-white">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+
+            <!-- Sidebar Navigation -->
+            <nav class="px-4 py-6 space-y-2">
+                <a href="{% url 'dashboard' %}" class="{% if request.resolver_match.url_name == 'dashboard' %}bg-slate-700 text-white{% else %}text-gray-300 hover:bg-slate-700 hover:text-white{% endif %} flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors duration-200">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
+                    </svg>
+                    <span class="font-medium">Dashboard</span>
+                </a>
+                
+                <a href="{% url 'tenants' %}" class="{% if request.resolver_match.url_name == 'tenants' %}bg-slate-700 text-white{% else %}text-gray-300 hover:bg-slate-700 hover:text-white{% endif %} flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors duration-200">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
+                    </svg>
+                    <span class="font-medium">Tenants</span>
+                </a>
+                
+                <a href="{% url 'leases' %}" class="{% if request.resolver_match.url_name == 'leases' %}bg-slate-700 text-white{% else %}text-gray-300 hover:bg-slate-700 hover:text-white{% endif %} flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors duration-200">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                    </svg>
+                    <span class="font-medium">Leases</span>
+                </a>
+                
+                <a href="{% url 'billing' %}" class="{% if request.resolver_match.url_name == 'billing' %}bg-slate-700 text-white{% else %}text-gray-300 hover:bg-slate-700 hover:text-white{% endif %} flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors duration-200">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 14l6-6m-5.5.5h.01m4.99 5h.01M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16l3.5-2 3.5 2 3.5-2 3.5 2z"></path>
+                    </svg>
+                    <span class="font-medium">Billing</span>
+                </a>
+                
+                <a href="{% url 'reports_rent_collection' %}" class="{% if 'reports' in request.resolver_match.url_name %}bg-slate-700 text-white{% else %}text-gray-300 hover:bg-slate-700 hover:text-white{% endif %} flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors duration-200">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                    </svg>
+                    <span class="font-medium">Reports</span>
+                </a>
+            </nav>
+        </aside>
+
+        <!-- Main Content Area -->
+        <div class="flex-1 flex flex-col overflow-hidden">
+            <!-- Top Navigation -->
+            <header class="bg-white border-b border-gray-200 h-16 flex items-center justify-between px-6">
+                <!-- Mobile Menu Button -->
+                <button @click="sidebarOpen = true" class="lg:hidden text-gray-600 hover:text-gray-900">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                    </svg>
+                </button>
+
+                <h1 class="text-xl font-bold text-gray-900 hidden lg:block">Tenant Management Dashboard</h1>
+                
+                <!-- User Menu -->
+                <div class="flex items-center space-x-4">
+                    <span class="text-gray-600 text-sm font-medium">{{ user.username }}</span>
+                    <a href="{% url 'logout' %}" class="bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-200">
+                        Log out
+                    </a>
+                </div>
+            </header>
+
+            <!-- Page Content -->
+            <main class="flex-1 overflow-y-auto bg-gray-50 p-6">
+                {% block content %}{% endblock %}
+            </main>
+        </div>
+    </div>
+    {% else %}
+    <!-- Login Page -->
+    <div class="min-h-screen flex items-center justify-center">
+            <div class="flex justify-between h-16 sm:h-20">
+                <!-- Logo and Brand -->
+                <div class="flex items-center space-x-2 sm:space-x-4">
+                    <div class="flex-shrink-0 flex items-center space-x-2 sm:space-x-3">
+                        <div class="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-indigo-600 to-indigo-700 rounded-lg sm:rounded-xl flex items-center justify-center shadow-lg">
+                            <svg class="w-5 h-5 sm:w-7 sm:h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
+                            </svg>
+                        </div>
+                        <div class="hidden xs:block">
+                            <h1 class="text-base sm:text-xl lg:text-2xl font-bold bg-gradient-to-r from-indigo-600 to-indigo-700 bg-clip-text text-transparent leading-tight">Rental Manager</h1>
+                            <p class="text-[10px] sm:text-xs text-gray-500 font-medium hidden sm:block">Property Management System</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Desktop Navigation Links -->
+                <div class="hidden lg:flex items-center space-x-2">
+                    <a href="{% url 'dashboard' %}" class="{% if request.resolver_match.url_name == 'dashboard' %}bg-indigo-50 text-indigo-700 border-b-2 border-indigo-600{% else %}text-gray-600 hover:bg-gray-50 hover:text-indigo-600{% endif %} px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200 flex items-center space-x-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
+                        </svg>
+                        <span>Dashboard</span>
+                    </a>
+                    <a href="{% url 'map' %}" class="{% if request.resolver_match.url_name == 'map' %}bg-indigo-50 text-indigo-700 border-b-2 border-indigo-600{% else %}text-gray-600 hover:bg-gray-50 hover:text-indigo-600{% endif %} px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200 flex items-center space-x-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"></path>
+                        </svg>
+                        <span>Map</span>
+                    </a>
+                    <a href="{% url 'tenants' %}" class="{% if request.resolver_match.url_name == 'tenants' %}bg-indigo-50 text-indigo-700 border-b-2 border-indigo-600{% else %}text-gray-600 hover:bg-gray-50 hover:text-indigo-600{% endif %} px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200 flex items-center space-x-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
+                        </svg>
+                        <span>Tenants</span>
+                    </a>
+                    <a href="{% url 'leases' %}" class="{% if request.resolver_match.url_name == 'leases' %}bg-indigo-50 text-indigo-700 border-b-2 border-indigo-600{% else %}text-gray-600 hover:bg-gray-50 hover:text-indigo-600{% endif %} px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200 flex items-center space-x-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                        </svg>
+                        <span>Leases</span>
+                    </a>
+                    <a href="{% url 'payments' %}" class="{% if request.resolver_match.url_name == 'payments' %}bg-indigo-50 text-indigo-700 border-b-2 border-indigo-600{% else %}text-gray-600 hover:bg-gray-50 hover:text-indigo-600{% endif %} px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200 flex items-center space-x-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                        </svg>
+                        <span>Payments</span>
+                    </a>
+                    <a href="{% url 'billing' %}" class="{% if request.resolver_match.url_name == 'billing' %}bg-indigo-50 text-indigo-700 border-b-2 border-indigo-600{% else %}text-gray-600 hover:bg-gray-50 hover:text-indigo-600{% endif %} px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200 flex items-center space-x-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 14l6-6m-5.5.5h.01m4.99 5h.01M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16l3.5-2 3.5 2 3.5-2 3.5 2z"></path>
+                        </svg>
+                        <span>Billing</span>
+                    </a>
+                    <a href="{% url 'settings' %}" class="{% if request.resolver_match.url_name == 'settings' %}bg-indigo-50 text-indigo-700 border-b-2 border-indigo-600{% else %}text-gray-600 hover:bg-gray-50 hover:text-indigo-600{% endif %} px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200 flex items-center space-x-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                        </svg>
+                        <span>Settings</span>
+                    </a>
+                </div>
+
+                <!-- User Menu & Mobile Menu Button -->
+                <div class="flex items-center space-x-1 sm:space-x-3">
+                    <!-- User Dropdown - Hidden on very small screens -->
+                    <div class="hidden md:flex items-center space-x-2 sm:space-x-3 bg-gray-50 px-2 sm:px-4 py-2 rounded-lg border border-gray-200">
+                        <div class="w-7 h-7 sm:w-8 sm:h-8 bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-full flex items-center justify-center">
+                            <span class="text-white text-xs sm:text-sm font-bold">{{ user.username|slice:":1"|upper }}</span>
+                        </div>
+                        <div class="hidden lg:block">
+                            <p class="text-sm font-semibold text-gray-700 leading-tight">{{ user.username }}</p>
+                            <p class="text-xs text-gray-500">Administrator</p>
+                        </div>
+                    </div>
+                    <a href="{% url 'logout' %}" class="hidden md:flex items-center space-x-1 sm:space-x-2 bg-red-50 hover:bg-red-100 text-red-600 px-2 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-semibold transition-all duration-200 border border-red-200">
+                        <svg class="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
+                        </svg>
+                        <span class="hidden lg:inline">Logout</span>
+                        <span class="lg:hidden">Exit</span>
+                    </a>
+                    
+                    <!-- Mobile menu button -->
+                    <button @click="mobileMenuOpen = !mobileMenuOpen" class="lg:hidden inline-flex items-center justify-center p-2 rounded-lg text-gray-600 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-colors duration-200">
+                        <span class="sr-only">Open main menu</span>
+                        <svg class="h-5 w-5 sm:h-6 sm:w-6" x-show="!mobileMenuOpen" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 6h16M4 12h16M4 18h16" />
+                        </svg>
+                        <svg class="h-5 w-5 sm:h-6 sm:w-6" x-show="mobileMenuOpen" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="display: none;">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mobile menu -->
+        <div x-show="mobileMenuOpen" 
+             x-transition:enter="transition ease-out duration-200"
+             x-transition:enter-start="opacity-0 transform -translate-y-2"
+             x-transition:enter-end="opacity-100 transform translate-y-0"
+             x-transition:leave="transition ease-in duration-150"
+             x-transition:leave-start="opacity-100 transform translate-y-0"
+             x-transition:leave-end="opacity-0 transform -translate-y-2"
+             class="lg:hidden border-t border-gray-200 bg-white"
+             style="display: none;">
+            <div class="px-4 pt-2 pb-3 space-y-1">
+                <a href="{% url 'dashboard' %}" class="{% if request.resolver_match.url_name == 'dashboard' %}bg-indigo-50 text-indigo-700 border-l-4 border-indigo-600{% else %}text-gray-600 hover:bg-gray-50 border-l-4 border-transparent{% endif %} flex items-center space-x-3 px-3 py-3 rounded-r-lg text-base font-semibold transition-all">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
+                    </svg>
+                    <span>Dashboard</span>
+                </a>
+                <a href="{% url 'map' %}" class="{% if request.resolver_match.url_name == 'map' %}bg-indigo-50 text-indigo-700 border-l-4 border-indigo-600{% else %}text-gray-600 hover:bg-gray-50 border-l-4 border-transparent{% endif %} flex items-center space-x-3 px-3 py-3 rounded-r-lg text-base font-semibold transition-all">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"></path>
+                    </svg>
+                    <span>Map</span>
+                </a>
+                <a href="{% url 'tenants' %}" class="{% if request.resolver_match.url_name == 'tenants' %}bg-indigo-50 text-indigo-700 border-l-4 border-indigo-600{% else %}text-gray-600 hover:bg-gray-50 border-l-4 border-transparent{% endif %} flex items-center space-x-3 px-3 py-3 rounded-r-lg text-base font-semibold transition-all">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
+                    </svg>
+                    <span>Tenants</span>
+                </a>
+                <a href="{% url 'leases' %}" class="{% if request.resolver_match.url_name == 'leases' %}bg-indigo-50 text-indigo-700 border-l-4 border-indigo-600{% else %}text-gray-600 hover:bg-gray-50 border-l-4 border-transparent{% endif %} flex items-center space-x-3 px-3 py-3 rounded-r-lg text-base font-semibold transition-all">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                    </svg>
+                    <span>Leases</span>
+                </a>
+                <a href="{% url 'payments' %}" class="{% if request.resolver_match.url_name == 'payments' %}bg-indigo-50 text-indigo-700 border-l-4 border-indigo-600{% else %}text-gray-600 hover:bg-gray-50 border-l-4 border-transparent{% endif %} flex items-center space-x-3 px-3 py-3 rounded-r-lg text-base font-semibold transition-all">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                    </svg>
+                    <span>Payments</span>
+                </a>
+                <a href="{% url 'billing' %}" class="{% if request.resolver_match.url_name == 'billing' %}bg-indigo-50 text-indigo-700 border-l-4 border-indigo-600{% else %}text-gray-600 hover:bg-gray-50 border-l-4 border-transparent{% endif %} flex items-center space-x-3 px-3 py-3 rounded-r-lg text-base font-semibold transition-all">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 14l6-6m-5.5.5h.01m4.99 5h.01M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16l3.5-2 3.5 2 3.5-2 3.5 2z"></path>
+                    </svg>
+                    <span>Billing</span>
+                </a>
+                <a href="{% url 'settings' %}" class="{% if request.resolver_match.url_name == 'settings' %}bg-indigo-50 text-indigo-700 border-l-4 border-indigo-600{% else %}text-gray-600 hover:bg-gray-50 border-l-4 border-transparent{% endif %} flex items-center space-x-3 px-3 py-3 rounded-r-lg text-base font-semibold transition-all">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                    </svg>
+                    <span>Settings</span>
+                </a>
+                <div class="border-t border-gray-200 pt-3 mt-3">
+                    <div class="flex items-center space-x-3 px-3 py-2 bg-gray-50 rounded-lg mb-2">
+                        <div class="w-10 h-10 bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-full flex items-center justify-center">
+                            <span class="text-white font-bold">{{ user.username|slice:":1"|upper }}</span>
+                        </div>
+                        <div>
+                            <p class="text-sm font-semibold text-gray-700">{{ user.username }}</p>
+                            <p class="text-xs text-gray-500">Administrator</p>
+                        </div>
+                    </div>
+                    <a href="{% url 'logout' %}" class="flex items-center space-x-3 px-3 py-3 bg-red-50 text-red-600 rounded-lg text-base font-semibold hover:bg-red-100 transition-all">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
+                        </svg>
+                        <span>Logout</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+    {% endif %}
+
+    <!-- Toast Messages -->
+    {% if messages %}
+    <div class="fixed top-4 right-4 z-50" x-data="{ show: true }" x-show="show" x-init="setTimeout(() => show = false, 5000)">
+        {% for message in messages %}
+        <div class="mb-2 bg-white border-l-4 {% if message.tags == 'error' %}border-red-500{% elif message.tags == 'warning' %}border-yellow-500{% elif message.tags == 'success' %}border-green-500{% else %}border-blue-500{% endif %} p-4 shadow-lg rounded">
+            <div class="flex">
+                <div class="ml-3">
+                    <p class="text-sm {% if message.tags == 'error' %}text-red-700{% elif message.tags == 'warning' %}text-yellow-700{% elif message.tags == 'success' %}text-green-700{% else %}text-blue-700{% endif %}">
+                        {{ message }}
+                    </p>
+                </div>
+                <div class="ml-auto pl-3">
+                    <button @click="show = false" class="inline-flex text-gray-400 hover:text-gray-600">
+                        <span class="sr-only">Close</span>
+                        <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Main Content -->
+    <main class="{% if user.is_authenticated %}min-h-screen{% else %}min-h-screen flex items-center justify-center{% endif %}">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- HTMX Loading Indicator -->
+    <div id="htmx-loading" class="htmx-indicator fixed top-4 left-1/2 transform -translate-x-1/2 bg-blue-500 text-white px-4 py-2 rounded shadow-lg">
+        Loading...
+    </div>
+
+    <style>
+        .htmx-indicator {
+            display: none;
+        }
+        .htmx-request .htmx-indicator {
+            display: block;
+        }
+        .htmx-request.htmx-indicator {
+            display: block;
+        }
+    </style>
+</body>
+</html>
