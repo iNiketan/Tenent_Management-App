@@ -41,6 +41,7 @@ urlpatterns = [
     path('lease/<int:lease_id>/update-rent/', views.update_lease_rent, name='update_lease_rent'),
     path('room/<int:room_id>/update-payment/', views.update_payment_status, name='update_payment_status'),
     path('room/<int:room_id>/add-meter-reading/', views.add_meter_reading_inline, name='add_meter_reading_inline'),
+    path('room/<int:room_id>/create-lease/', views.create_lease_for_room, name='create_lease_for_room'),
     
     # Reports
     path('reports/rent-collection/', views.reports_rent_collection, name='reports_rent_collection'),

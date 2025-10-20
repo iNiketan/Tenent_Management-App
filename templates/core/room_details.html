@@ -246,19 +246,99 @@
     </div>
 
     {% else %}
-    <!-- No Active Lease -->
-    <div class="bg-yellow-50 border-2 border-yellow-200 rounded-lg p-8 text-center max-w-2xl mx-auto">
-        <svg class="mx-auto h-16 w-16 text-yellow-600 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
-        </svg>
-        <h3 class="text-xl font-semibold text-gray-900 mb-2">No Active Lease</h3>
-        <p class="text-gray-600 mb-4">This room is currently vacant. Create a lease to manage tenant and rent.</p>
-        <a href="{% url 'leases' %}" class="inline-flex items-center px-6 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 min-h-[44px]">
-            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
-            </svg>
-            Create Lease
-        </a>
+    <!-- No Active Lease - Assign Tenant Form -->
+    <div class="max-w-2xl mx-auto">
+        <div class="bg-yellow-50 dark:bg-yellow-900/20 border-2 border-yellow-200 dark:border-yellow-800 rounded-lg p-6 mb-6">
+            <div class="flex items-center mb-4">
+                <svg class="h-8 w-8 text-yellow-600 dark:text-yellow-400 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                </svg>
+                <div>
+                    <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Room is Vacant</h3>
+                    <p class="text-sm text-gray-600 dark:text-gray-400">Assign a tenant to this room</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Assign Tenant Form -->
+        <div class="bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 rounded-lg p-6">
+            <h2 class="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-6">Assign Tenant to Room {{ room.room_number }}</h2>
+            
+            <form method="post" action="{% url 'create_lease_for_room' room.id %}" class="space-y-4">
+                {% csrf_token %}
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        Select Tenant *
+                    </label>
+                    <select name="tenant_id" required
+                            class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 min-h-[44px]">
+                        <option value="">-- Select a tenant --</option>
+                        {% for tenant in all_tenants %}
+                        <option value="{{ tenant.id }}">{{ tenant.full_name }} ({{ tenant.phone }})</option>
+                        {% endfor %}
+                    </select>
+                    <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                        Don't see the tenant? <a href="{% url 'tenants' %}" class="text-blue-600 dark:text-blue-400 hover:underline" target="_blank">Add a new tenant</a>
+                    </p>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                            Start Date *
+                        </label>
+                        <input type="date" name="start_date" required
+                               value="{{ today }}"
+                               class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 min-h-[44px]">
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                            Monthly Rent (₹) *
+                        </label>
+                        <input type="number" name="monthly_rent" required min="0" step="0.01"
+                               placeholder="5000"
+                               class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 min-h-[44px]">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        Security Deposit (₹)
+                    </label>
+                    <input type="number" name="deposit" min="0" step="0.01"
+                           placeholder="10000"
+                           value="0"
+                           class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 min-h-[44px]">
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        Billing Day of Month
+                    </label>
+                    <input type="number" name="billing_day" min="1" max="28"
+                           placeholder="1"
+                           value="1"
+                           class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 min-h-[44px]">
+                    <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Day of month when rent is due (1-28)</p>
+                </div>
+
+                <div class="flex gap-3 pt-4">
+                    <a href="{% url 'building_details' room.building.id %}"
+                       class="flex-1 px-4 py-3 bg-gray-300 dark:bg-gray-600 text-gray-700 dark:text-gray-200 font-medium rounded-lg hover:bg-gray-400 dark:hover:bg-gray-500 text-center min-h-[44px] flex items-center justify-center">
+                        Cancel
+                    </a>
+                    <button type="submit"
+                            class="flex-1 px-4 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 min-h-[44px] flex items-center justify-center">
+                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                        </svg>
+                        Assign Tenant
+                    </button>
+                </div>
+            </form>
+        </div>
     </div>
     {% endif %}
 

@@ -30,6 +30,8 @@ def get_room_finance_snapshot(room):
     - Bills summary (paid/unpaid months)
     - Last bill details
     - Badge status (OK / Due soon / Overdue / Vacant / Maintenance)
+    
+    OPTIMIZED: Uses prefetched data when available to avoid N+1 queries.
     """
     snapshot = {
         'room': room,
@@ -50,8 +52,11 @@ def get_room_finance_snapshot(room):
         'badge_class': 'bg-gray-100 text-gray-700',
     }
     
-    # Get active lease
-    active_lease = room.leases.filter(status='active').first()
+    # Get active lease - use prefetched data if available
+    if hasattr(room, 'active_leases_list'):
+        active_lease = room.active_leases_list[0] if room.active_leases_list else None
+    else:
+        active_lease = room.leases.filter(status='active').select_related('tenant').first()
     
     if not active_lease:
         if room.status == 'maintenance':
@@ -65,30 +70,23 @@ def get_room_finance_snapshot(room):
     snapshot['lease_start'] = active_lease.start_date
     snapshot['lease_end'] = active_lease.end_date
     
-    # Get recent invoices (last 6)
-    recent_invoices = Invoice.objects.filter(room=room).order_by('-month')[:6]
+    # Get recent invoices - use prefetched data if available
+    if hasattr(room, 'current_invoices_list'):
+        # For building list view, we only prefetch current month
+        recent_invoices = room.current_invoices_list
+    else:
+        # Fallback for other views
+        recent_invoices = Invoice.objects.filter(room=room).order_by('-month')[:6]
     
-    # Count paid vs unpaid invoices
-    for invoice in Invoice.objects.filter(room=room):
-        # Check if invoice is paid via RentPayment records
-        payment_exists = RentPayment.objects.filter(
-            lease=active_lease,
-            paid_on__year=invoice.month.year,
-            paid_on__month=invoice.month.month
-        ).exists()
-        
-        if payment_exists:
-            snapshot['months_paid'] += 1
-        else:
-            snapshot['months_unpaid'] += 1
+    # Simplified: just check the latest invoice for badge
+    # (Full payment counting can be done on detail pages, not needed for grid view)
+    last_invoice = recent_invoices[0] if recent_invoices else None
     
-    # Get last invoice
-    last_invoice = recent_invoices.first() if recent_invoices else None
     if last_invoice:
         snapshot['last_invoice'] = last_invoice
         snapshot['last_invoice_period'] = last_invoice.month.strftime('%Y-%m')
         
-        # Check if paid
+        # Check if paid - simplified check
         payment_exists = RentPayment.objects.filter(
             lease=active_lease,
             paid_on__year=last_invoice.month.year,
@@ -250,13 +248,43 @@ def room_drawer(request, room_id):
 
 @login_required
 def tenants_view(request):
-    tenants = Tenant.objects.all()
+    # OPTIMIZED: Prefetch active leases to avoid N+1 when displaying tenant list
+    from django.db.models import Prefetch
+    
+    tenants = Tenant.objects.prefetch_related(
+        Prefetch(
+            'leases',
+            queryset=Lease.objects.filter(status='active').select_related('room', 'room__building', 'room__floor'),
+            to_attr='active_leases_list'
+        )
+    ).all()
     
     if request.method == 'POST':
         form = TenantForm(request.POST)
         if form.is_valid():
-            form.save()
-            messages.success(request, 'Tenant created successfully.')
+            # Save the tenant
+            tenant = form.save()
+            
+            # If a room was selected, create a lease
+            room = form.cleaned_data.get('room')
+            if room:
+                start_date = form.cleaned_data.get('start_date')
+                monthly_rent = form.cleaned_data.get('monthly_rent')
+                deposit = form.cleaned_data.get('deposit') or 0
+                
+                # Create the lease
+                lease = Lease.objects.create(
+                    tenant=tenant,
+                    room=room,
+                    start_date=start_date,
+                    monthly_rent=monthly_rent,
+                    deposit=deposit,
+                    status='active'
+                )
+                messages.success(request, f'Tenant created and assigned to {room}. Room status updated to occupied.')
+            else:
+                messages.success(request, 'Tenant created successfully.')
+            
             return redirect('tenants')
     else:
         form = TenantForm()
@@ -602,12 +630,31 @@ def reports_electricity(request):
 def building_details(request, building_id):
     """
     Building details page showing all rooms grid with finance snapshots.
+    Optimized with prefetch_related to eliminate N+1 queries.
     """
+    from django.db.models import Prefetch
+    
+    today = timezone.now().date()
+    current_month = date(today.year, today.month, 1)
+    
+    # Single optimized query with all related data prefetched
     building = get_object_or_404(Building, id=building_id)
     floors = building.floors.all().order_by('floor_number')
-    rooms = building.rooms.select_related('floor').order_by('floor__floor_number', 'room_number')
     
-    # Generate finance snapshot for each room
+    rooms = building.rooms.select_related('floor').prefetch_related(
+        Prefetch(
+            'leases',
+            queryset=Lease.objects.filter(status='active').select_related('tenant'),
+            to_attr='active_leases_list'
+        ),
+        Prefetch(
+            'invoices',
+            queryset=Invoice.objects.filter(month=current_month),
+            to_attr='current_invoices_list'
+        )
+    ).order_by('floor__floor_number', 'room_number')
+    
+    # Generate finance snapshot for each room using prefetched data
     rooms_with_snapshot = []
     for room in rooms:
         snapshot = get_room_finance_snapshot(room)
@@ -660,9 +707,27 @@ def room_panel(request, room_id, template='core/partials/room_panel.html'):
     Returns the room details panel/drawer content (HTMX partial).
     Shows room status, active lease, bills list with inline editing.
     Auto-creates current month's bill if it doesn't exist.
+    
+    OPTIMIZED: Uses select_related/prefetch_related to minimize queries.
     """
-    room = get_object_or_404(Room, id=room_id)
-    active_lease = room.leases.filter(status='active').first()
+    from django.db.models import Prefetch
+    
+    # Optimized query with all related data
+    room = get_object_or_404(
+        Room.objects.select_related(
+            'building',
+            'floor'
+        ).prefetch_related(
+            Prefetch(
+                'leases',
+                queryset=Lease.objects.filter(status='active').select_related('tenant'),
+                to_attr='active_leases_list'
+            ),
+            'meter_readings'
+        ),
+        id=room_id
+    )
+    active_lease = room.active_leases_list[0] if room.active_leases_list else None
     
     # Get current month
     today = timezone.now().date()
@@ -764,6 +829,7 @@ def room_panel(request, room_id, template='core/partials/room_panel.html'):
         'units_used': units_used,
         'all_tenants': all_tenants,
         'current_month': current_month.strftime('%Y-%m'),
+        'today': today.isoformat(),
     }
     
     return render(request, template, context)
@@ -1102,5 +1168,62 @@ def add_meter_reading_inline(request, room_id):
         
     except (ValueError, TypeError) as e:
         messages.error(request, f'Invalid reading value or date: {str(e)}')
+    
+    return redirect('room_details_page', room_id=room_id)
+
+
+@login_required
+@require_http_methods(["POST"])
+def create_lease_for_room(request, room_id):
+    """
+    Create a new lease for a vacant room (assign tenant to room).
+    """
+    room = get_object_or_404(Room, id=room_id)
+    
+    # Check if room already has an active lease
+    if room.leases.filter(status='active').exists():
+        messages.error(request, 'This room already has an active lease.')
+        return redirect('room_details_page', room_id=room_id)
+    
+    tenant_id = request.POST.get('tenant_id')
+    start_date_str = request.POST.get('start_date')
+    monthly_rent = request.POST.get('monthly_rent')
+    deposit = request.POST.get('deposit', '0')
+    billing_day = request.POST.get('billing_day', '1')
+    
+    if not tenant_id or not start_date_str or not monthly_rent:
+        messages.error(request, 'Please provide tenant, start date, and monthly rent.')
+        return redirect('room_details_page', room_id=room_id)
+    
+    try:
+        tenant = get_object_or_404(Tenant, id=tenant_id)
+        start_date = datetime.strptime(start_date_str, '%Y-%m-%d').date()
+        monthly_rent_decimal = Decimal(monthly_rent)
+        deposit_decimal = Decimal(deposit) if deposit else Decimal('0')
+        billing_day_int = int(billing_day) if billing_day else 1
+        
+        # Validate billing_day
+        if billing_day_int < 1 or billing_day_int > 28:
+            billing_day_int = 1
+        
+        # Create the lease
+        lease = Lease.objects.create(
+            tenant=tenant,
+            room=room,
+            start_date=start_date,
+            monthly_rent=monthly_rent_decimal,
+            deposit=deposit_decimal,
+            billing_day=billing_day_int,
+            status='active'
+        )
+        
+        messages.success(request, f'Successfully assigned {tenant.full_name} to Room {room.room_number}. Room status updated to occupied.')
+        
+    except Tenant.DoesNotExist:
+        messages.error(request, 'Tenant not found.')
+    except (ValueError, TypeError) as e:
+        messages.error(request, f'Invalid input: {str(e)}')
+    except Exception as e:
+        messages.error(request, f'Error creating lease: {str(e)}')
     
     return redirect('room_details_page', room_id=room_id)

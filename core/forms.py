@@ -64,6 +64,46 @@ class RoomForm(forms.ModelForm):
 
 
 class TenantForm(forms.ModelForm):
+    # Add room and lease fields
+    room = forms.ModelChoiceField(
+        queryset=Room.objects.filter(status='vacant'),
+        required=False,
+        empty_label="Select a room (optional)",
+        widget=forms.Select(attrs={
+            'class': 'form-select rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500'
+        })
+    )
+    start_date = forms.DateField(
+        required=False,
+        widget=forms.DateInput(attrs={
+            'class': 'form-input rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500',
+            'type': 'date'
+        })
+    )
+    monthly_rent = forms.DecimalField(
+        required=False,
+        max_digits=10,
+        decimal_places=2,
+        widget=forms.NumberInput(attrs={
+            'class': 'form-input rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500',
+            'step': '0.01',
+            'min': '0',
+            'placeholder': 'Monthly rent'
+        })
+    )
+    deposit = forms.DecimalField(
+        required=False,
+        max_digits=10,
+        decimal_places=2,
+        initial=0,
+        widget=forms.NumberInput(attrs={
+            'class': 'form-input rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500',
+            'step': '0.01',
+            'min': '0',
+            'placeholder': 'Security deposit'
+        })
+    )
+    
     class Meta:
         model = Tenant
         fields = ['full_name', 'phone', 'email', 'id_proof_url']
@@ -82,9 +122,24 @@ class TenantForm(forms.ModelForm):
             }),
             'id_proof_url': forms.URLInput(attrs={
                 'class': 'form-input rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500',
-                'placeholder': 'ID proof URL'
+                'placeholder': 'ID proof URL (optional)'
             })
         }
+    
+    def clean(self):
+        cleaned_data = super().clean()
+        room = cleaned_data.get('room')
+        start_date = cleaned_data.get('start_date')
+        monthly_rent = cleaned_data.get('monthly_rent')
+        
+        # If room is selected, require lease details
+        if room:
+            if not start_date:
+                self.add_error('start_date', 'Start date is required when assigning a room')
+            if not monthly_rent:
+                self.add_error('monthly_rent', 'Monthly rent is required when assigning a room')
+        
+        return cleaned_data
 
 
 class LeaseForm(forms.ModelForm):

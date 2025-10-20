@@ -47,11 +47,11 @@
 
 <!-- Add Tenant Modal -->
 <div id="tenant-modal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-50">
-    <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+    <div class="relative top-10 mx-auto p-5 border w-full max-w-2xl shadow-lg rounded-md bg-white dark:bg-gray-800">
         <div class="mt-3">
             <div class="flex items-center justify-between mb-4">
-                <h3 class="text-lg font-medium text-gray-900">Add New Tenant</h3>
-                <button onclick="closeModal()" class="text-gray-400 hover:text-gray-600">
+                <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100">Add New Tenant</h3>
+                <button onclick="closeModal()" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                     </svg>
@@ -60,25 +60,81 @@
             
             <form method="post" class="space-y-4">
                 {% csrf_token %}
-                <div>
-                    <label for="id_full_name" class="block text-sm font-medium text-gray-700">Full Name</label>
-                    {{ form.full_name }}
+                
+                <!-- Tenant Information -->
+                <div class="border-b border-gray-200 dark:border-gray-700 pb-4">
+                    <h4 class="text-sm font-medium text-gray-900 dark:text-gray-100 mb-3">Tenant Information</h4>
+                    <div class="space-y-3">
+                        <div>
+                            <label for="id_full_name" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Full Name *</label>
+                            {{ form.full_name }}
+                            {% if form.full_name.errors %}
+                                <p class="mt-1 text-sm text-red-600">{{ form.full_name.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+                        <div>
+                            <label for="id_phone" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Phone *</label>
+                            {{ form.phone }}
+                            {% if form.phone.errors %}
+                                <p class="mt-1 text-sm text-red-600">{{ form.phone.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+                        <div>
+                            <label for="id_email" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Email</label>
+                            {{ form.email }}
+                            {% if form.email.errors %}
+                                <p class="mt-1 text-sm text-red-600">{{ form.email.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+                        <div>
+                            <label for="id_id_proof_url" class="block text-sm font-medium text-gray-700 dark:text-gray-300">ID Proof URL</label>
+                            {{ form.id_proof_url }}
+                            {% if form.id_proof_url.errors %}
+                                <p class="mt-1 text-sm text-red-600">{{ form.id_proof_url.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+                    </div>
                 </div>
+                
+                <!-- Room Assignment (Optional) -->
                 <div>
-                    <label for="id_phone" class="block text-sm font-medium text-gray-700">Phone</label>
-                    {{ form.phone }}
+                    <h4 class="text-sm font-medium text-gray-900 dark:text-gray-100 mb-3">Room Assignment (Optional)</h4>
+                    <div class="space-y-3">
+                        <div>
+                            <label for="id_room" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Assign to Room</label>
+                            {{ form.room }}
+                            {% if form.room.errors %}
+                                <p class="mt-1 text-sm text-red-600">{{ form.room.errors.0 }}</p>
+                            {% endif %}
+                            <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Select a vacant room to assign the tenant immediately</p>
+                        </div>
+                        <div>
+                            <label for="id_start_date" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Start Date</label>
+                            {{ form.start_date }}
+                            {% if form.start_date.errors %}
+                                <p class="mt-1 text-sm text-red-600">{{ form.start_date.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+                        <div>
+                            <label for="id_monthly_rent" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Monthly Rent (₹)</label>
+                            {{ form.monthly_rent }}
+                            {% if form.monthly_rent.errors %}
+                                <p class="mt-1 text-sm text-red-600">{{ form.monthly_rent.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+                        <div>
+                            <label for="id_deposit" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Security Deposit (₹)</label>
+                            {{ form.deposit }}
+                            {% if form.deposit.errors %}
+                                <p class="mt-1 text-sm text-red-600">{{ form.deposit.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+                    </div>
                 </div>
-                <div>
-                    <label for="id_email" class="block text-sm font-medium text-gray-700">Email</label>
-                    {{ form.email }}
-                </div>
-                <div>
-                    <label for="id_id_proof_url" class="block text-sm font-medium text-gray-700">ID Proof URL</label>
-                    {{ form.id_proof_url }}
-                </div>
-                <div class="flex justify-end space-x-3">
-                    <button type="button" onclick="closeModal()" class="btn-secondary">Cancel</button>
-                    <button type="submit" class="btn-primary">Save</button>
+                
+                <div class="flex justify-end space-x-3 pt-4">
+                    <button type="button" onclick="closeModal()" class="px-4 py-2 bg-gray-300 dark:bg-gray-600 text-gray-700 dark:text-gray-200 rounded-lg hover:bg-gray-400 dark:hover:bg-gray-500 min-h-[44px]">Cancel</button>
+                    <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 min-h-[44px] font-medium">Save Tenant</button>
                 </div>
             </form>
         </div>

@@ -115,8 +115,27 @@ class Lease(models.Model):
         if self.end_date and self.end_date <= self.start_date:
             raise ValidationError("End date must be after start date.")
         
-        if self.status == 'active' and self.room.status != 'occupied':
-            raise ValidationError("Room must be occupied for active lease.")
+        # For NEW active leases, check if room already has an active lease
+        # (Don't check room.status because it will be updated to 'occupied' on save)
+        if self.status == 'active' and not self.pk:
+            # Check for existing active lease on this room
+            existing_active = Lease.objects.filter(
+                room=self.room,
+                status='active'
+            ).exclude(pk=self.pk if self.pk else None).exists()
+            
+            if existing_active:
+                raise ValidationError("This room already has an active lease.")
+        
+        # For existing leases being updated to active, verify room isn't already occupied by another lease
+        elif self.status == 'active' and self.pk:
+            existing_active = Lease.objects.filter(
+                room=self.room,
+                status='active'
+            ).exclude(pk=self.pk).exists()
+            
+            if existing_active:
+                raise ValidationError("This room already has another active lease.")
 
     def save(self, *args, **kwargs):
         self.clean()
