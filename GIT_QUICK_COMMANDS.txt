@@ -1,0 +1,85 @@
+╔═══════════════════════════════════════════════════════════════╗
+║           GIT COMMANDS - Quick Reference                     ║
+║           For Rental Management App                          ║
+╚═══════════════════════════════════════════════════════════════╝
+
+🔍 CHECK BEFORE COMMITTING:
+─────────────────────────────────────────────────────────────────
+git status                    # See what files changed
+git diff                      # See actual changes
+git ls-files | findstr .env   # Check if .env is tracked
+
+✅ SAFE COMMIT WORKFLOW:
+─────────────────────────────────────────────────────────────────
+git add .                     # Stage all changes
+git status                    # Double-check what's staged
+git commit -m "Your message"  # Commit changes
+git push origin main          # Push to GitHub
+
+❌ REMOVE SENSITIVE FILES (NOT YET COMMITTED):
+─────────────────────────────────────────────────────────────────
+git rm --cached .env          # Remove .env from staging
+git rm --cached db.sqlite3    # Remove database
+git rm --cached *.pdf         # Remove PDFs
+git add .gitignore            # Add updated .gitignore
+git commit -m "Remove sensitive files"
+git push origin main
+
+🚨 REMOVE FROM GIT HISTORY (ALREADY PUSHED):
+─────────────────────────────────────────────────────────────────
+⚠️ WARNING: This rewrites history! Use with caution!
+
+# Option 1: Use the automated script
+cleanup_git_sensitive.bat
+
+# Option 2: Manual removal
+git filter-branch --force --index-filter \
+  "git rm --cached --ignore-unmatch .env" \
+  --prune-empty --tag-name-filter cat -- --all
+
+git push origin --force --all
+
+📋 FIRST TIME SETUP:
+─────────────────────────────────────────────────────────────────
+# 1. Initialize Git (if not done)
+git init
+
+# 2. Add remote (your GitHub repo)
+git remote add origin https://github.com/yourusername/repo-name.git
+
+# 3. Initial commit (after checking sensitive files!)
+git add .
+git status                    # REVIEW THIS!
+git commit -m "Initial commit"
+git branch -M main
+git push -u origin main
+
+🔄 UPDATE YOUR REPO:
+─────────────────────────────────────────────────────────────────
+# Get latest changes
+git pull origin main
+
+# Make your changes...
+
+# Commit and push
+git add .
+git commit -m "Description of changes"
+git push origin main
+
+🔐 MAKE REPO PRIVATE:
+─────────────────────────────────────────────────────────────────
+1. Go to: https://github.com/yourusername/repo-name/settings
+2. Scroll to "Danger Zone"
+3. Click "Change repository visibility"
+4. Select "Private"
+
+═══════════════════════════════════════════════════════════════
+
+⚠️ ALWAYS CHECK BEFORE PUSHING:
+   • No .env files
+   • No db.sqlite3
+   • No *.pdf files
+   • No sensitive data in code
+
+═══════════════════════════════════════════════════════════════
+

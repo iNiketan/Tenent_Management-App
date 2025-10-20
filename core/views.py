@@ -548,10 +548,15 @@ def reports_rent_collection(request):
             paid_on__lt=first_of_month + timedelta(days=32)
         )
         
+        total = sum(payment.amount for payment in payments)
+        payment_count = payments.count()
+        average = total / payment_count if payment_count > 0 else 0
+        
         context = {
             'payments': payments,
             'month': month_str,
-            'total': sum(payment.amount for payment in payments)
+            'total': total,
+            'average': average,
         }
         
         return render(request, 'core/reports/rent_collection.html', context)
@@ -574,10 +579,15 @@ def reports_electricity(request):
             type='electricity'
         )
         
+        total = sum(invoice.total for invoice in invoices)
+        invoice_count = invoices.count()
+        average = total / invoice_count if invoice_count > 0 else 0
+        
         context = {
             'invoices': invoices,
             'month': month_str,
-            'total': sum(invoice.total for invoice in invoices)
+            'total': total,
+            'average': average,
         }
         
         return render(request, 'core/reports/electricity.html', context)

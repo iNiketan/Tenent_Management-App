@@ -1,0 +1,50 @@
+╔═══════════════════════════════════════════════════════════════╗
+║         NGROK QUICK START - Tenant Management App            ║
+╚═══════════════════════════════════════════════════════════════╝
+
+📥 DOWNLOAD NGROK:
+   → https://ngrok.com/download
+   → Extract ngrok.exe to this folder
+
+▶️  START APP:
+   
+   METHOD 1 (From Anaconda Prompt - RECOMMENDED):
+   → Open Anaconda Prompt
+   → cd to project folder
+   → conda activate Ldjango
+   → Run: start_ngrok_simple.bat
+   
+   METHOD 2 (From Regular CMD):
+   → Double-click: start_with_ngrok.bat
+   → (Auto-finds Anaconda installation)
+   
+   → Wait for ngrok URL to appear
+
+📱 ACCESS FROM PHONE:
+   → Copy the ngrok URL (https://xxxx.ngrok-free.app)
+   → Open in your phone's browser
+   → Click "Visit Site" on ngrok warning page
+
+🛑 STOP:
+   → Press Ctrl+C in ngrok window
+   → Close both terminal windows
+
+💡 TIPS:
+   → URL changes each restart (unless you pay)
+   → View requests: http://localhost:4040
+   → 2-hour limit on free tier (sign up for more)
+
+🔗 USEFUL LINKS:
+   → Full Guide: NGROK_SETUP_GUIDE.md
+   → Ngrok Dashboard: https://dashboard.ngrok.com
+   → Get Auth Token: https://dashboard.ngrok.com/get-started/your-authtoken
+
+═══════════════════════════════════════════════════════════════
+
+EXAMPLE NGROK OUTPUT:
+   Forwarding  https://1a2b-3c4d-5e6f.ngrok-free.app → http://localhost:8000
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+                   👆 THIS IS YOUR PUBLIC URL!
+
+═══════════════════════════════════════════════════════════════
+

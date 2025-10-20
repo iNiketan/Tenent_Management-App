@@ -24,6 +24,16 @@ DEBUG = env('DEBUG')
 
 ALLOWED_HOSTS = env('ALLOWED_HOSTS')
 
+# Allow ngrok tunnels (for development/testing)
+if DEBUG:
+    ALLOWED_HOSTS += ['.ngrok-free.app', '.ngrok.io']
+
+# CSRF trusted origins (dynamically updated by NgrokCSRFMiddleware for ngrok)
+CSRF_TRUSTED_ORIGINS = [
+    'http://localhost:8000',
+    'http://127.0.0.1:8000',
+]
+
 # Application definition
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -41,6 +51,7 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
+    'core.middleware.NgrokCSRFMiddleware',  # Handle ngrok CSRF
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',

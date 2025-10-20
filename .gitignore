@@ -173,3 +173,73 @@ logs/
 # Temporary files
 tmp/
 temp/
+
+# ============================================
+# RENTAL MANAGEMENT APP - SENSITIVE DATA
+# ============================================
+
+# Environment and secrets
+.env
+.env.*
+!env.example
+*.pem
+*.key
+*.crt
+
+# Database with tenant data
+*.sqlite3
+*.db
+db.sqlite3*
+
+# PDF files (may contain tenant sensitive information)
+*.pdf
+!example.pdf
+invoices/
+receipts/
+
+# Excel/Document files with data
+*.xlsx
+*.xls
+*.csv
+*.docx
+*.doc
+!Rental_Management_Free_Setup_Plan.docx
+
+# Backup files
+*.backup
+*.bak
+*.old
+backup/
+backups/
+
+# Ngrok
+ngrok
+ngrok.exe
+ngrok.yml
+ngrok.log
+
+# Local configuration
+local_settings.py
+settings_local.py
+
+# Static and media files (may contain uploaded documents)
+staticfiles/
+mediafiles/
+uploads/
+media/
+
+# Session data
+sessions/
+
+# Any custom scripts with credentials
+deploy.sh
+deploy.bat
+*_local.*
+
+# Testing data
+test_data/
+demo_data/
+
+# Conda environment
+*.conda
+.conda/
