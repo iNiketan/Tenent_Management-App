@@ -1,0 +1,178 @@
+{% extends 'core/base.html' %}
+
+{% block title %}Add New Building{% endblock %}
+
+{% block content %}
+<div class="px-2 py-4 sm:px-4 md:px-6 lg:px-8 max-w-4xl mx-auto">
+    <!-- Header -->
+    <div class="mb-6">
+        <div class="flex items-center justify-between mb-4">
+            <div>
+                <h1 class="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-gray-100">Add New Building</h1>
+                <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">Create a building with floors and rooms in one go</p>
+            </div>
+            <a href="{% url 'map' %}" 
+               class="px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 min-h-[44px] flex items-center">
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+                </svg>
+                Back
+            </a>
+        </div>
+    </div>
+
+    <!-- Django Messages -->
+    {% if messages %}
+    <div class="mb-6 space-y-2">
+        {% for message in messages %}
+        <div class="p-4 rounded-lg {% if message.tags == 'error' %}bg-red-50 dark:bg-red-900/20 border-2 border-red-200 dark:border-red-800 text-red-800 dark:text-red-200{% elif message.tags == 'success' %}bg-green-50 dark:bg-green-900/20 border-2 border-green-200 dark:border-green-800 text-green-800 dark:text-green-200{% else %}bg-blue-50 dark:bg-blue-900/20 border-2 border-blue-200 dark:border-blue-800 text-blue-800 dark:text-blue-200{% endif %}">
+            {{ message }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Form -->
+    <div class="bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 rounded-lg shadow-sm">
+        <form method="post" class="p-6 space-y-6">
+            {% csrf_token %}
+
+            <!-- Building Name -->
+            <div>
+                <label for="id_building_name" class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                    Building Name *
+                </label>
+                {{ form.building_name }}
+                {% if form.building_name.errors %}
+                <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ form.building_name.errors.0 }}</p>
+                {% endif %}
+                <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Give your building a unique name</p>
+            </div>
+
+            <!-- Number of Floors -->
+            <div>
+                <label for="id_num_floors" class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                    Number of Floors *
+                </label>
+                {{ form.num_floors }}
+                {% if form.num_floors.errors %}
+                <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ form.num_floors.errors.0 }}</p>
+                {% endif %}
+                <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">How many floors does this building have? (1-50)</p>
+            </div>
+
+            <!-- Rooms per Floor -->
+            <div>
+                <label for="id_rooms_per_floor" class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                    Rooms per Floor *
+                </label>
+                {{ form.rooms_per_floor }}
+                {% if form.rooms_per_floor.errors %}
+                <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ form.rooms_per_floor.errors.0 }}</p>
+                {% endif %}
+                <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">How many rooms on each floor? (1-100)</p>
+            </div>
+
+            <!-- Room Number Prefix (Optional) -->
+            <div>
+                <label for="id_room_number_prefix" class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                    Room Number Prefix (Optional)
+                </label>
+                {{ form.room_number_prefix }}
+                {% if form.room_number_prefix.errors %}
+                <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ form.room_number_prefix.errors.0 }}</p>
+                {% endif %}
+                <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                    Add a prefix like 'A' or 'B' for room numbers. Leave blank for default numbering (e.g., 101, 102, 201, 202)
+                </p>
+            </div>
+
+            <!-- Preview -->
+            <div class="bg-blue-50 dark:bg-blue-900/20 border-2 border-blue-200 dark:border-blue-800 rounded-lg p-4">
+                <h3 class="text-sm font-semibold text-blue-800 dark:text-blue-200 mb-2">
+                    <svg class="inline w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    Preview
+                </h3>
+                <p class="text-sm text-blue-700 dark:text-blue-300" id="preview-text">
+                    Fill in the form to see a preview of what will be created.
+                </p>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="flex flex-col sm:flex-row gap-3 pt-4">
+                <a href="{% url 'map' %}" 
+                   class="flex-1 px-6 py-3 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200 font-semibold rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 text-center min-h-[44px] flex items-center justify-center">
+                    Cancel
+                </a>
+                <button type="submit" 
+                        class="flex-1 px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 min-h-[44px] flex items-center justify-center">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                    </svg>
+                    Create Building
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Help Section -->
+    <div class="mt-6 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+        <h3 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">💡 Tips</h3>
+        <ul class="text-sm text-gray-600 dark:text-gray-400 space-y-1 list-disc list-inside">
+            <li>Room numbers are automatically generated based on floor and room sequence</li>
+            <li>Default format: Floor number + Room number (e.g., 101, 102 for Floor 1; 201, 202 for Floor 2)</li>
+            <li>All rooms start with "vacant" status and can be assigned tenants later</li>
+            <li>You can edit individual rooms after creation if needed</li>
+        </ul>
+    </div>
+</div>
+
+<!-- Preview Update Script -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const nameInput = document.getElementById('id_building_name');
+    const floorsInput = document.getElementById('id_num_floors');
+    const roomsInput = document.getElementById('id_rooms_per_floor');
+    const prefixInput = document.getElementById('id_room_number_prefix');
+    const previewText = document.getElementById('preview-text');
+
+    function updatePreview() {
+        const name = nameInput.value.trim() || '[Building Name]';
+        const floors = parseInt(floorsInput.value) || 0;
+        const rooms = parseInt(roomsInput.value) || 0;
+        const prefix = prefixInput.value.trim();
+        const totalRooms = floors * rooms;
+
+        if (floors > 0 && rooms > 0) {
+            let exampleRooms = '';
+            if (prefix) {
+                exampleRooms = `${prefix}101, ${prefix}102, ... ${prefix}${floors - 1}${rooms.toString().padStart(2, '0')}`;
+            } else {
+                exampleRooms = `101, 102, ... ${floors - 1}${rooms.toString().padStart(2, '0')}`;
+            }
+
+            previewText.innerHTML = `
+                <strong>${name}</strong> will be created with:<br>
+                • <strong>${floors}</strong> floor${floors !== 1 ? 's' : ''}<br>
+                • <strong>${rooms}</strong> room${rooms !== 1 ? 's' : ''} per floor<br>
+                • <strong>${totalRooms}</strong> total rooms<br>
+                • Room numbers: ${exampleRooms}
+            `;
+        } else {
+            previewText.textContent = 'Fill in the form to see a preview of what will be created.';
+        }
+    }
+
+    nameInput.addEventListener('input', updatePreview);
+    floorsInput.addEventListener('input', updatePreview);
+    roomsInput.addEventListener('input', updatePreview);
+    prefixInput.addEventListener('input', updatePreview);
+
+    // Initial update
+    updatePreview();
+});
+</script>
+{% endblock %}
+

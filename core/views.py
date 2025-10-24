@@ -6,6 +6,7 @@ from django.http import JsonResponse, HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 from django.db.models import Q, Sum, Count
+from django.db import transaction
 from django.utils import timezone
 from datetime import date, datetime, timedelta
 from decimal import Decimal
@@ -195,6 +196,71 @@ def dashboard(request):
     }
     
     return render(request, 'core/dashboard.html', context)
+
+
+@login_required
+def create_building(request):
+    """
+    View to create a building with floors and rooms in one go.
+    """
+    from core.forms import BuildingWithFloorsForm
+    
+    if request.method == 'POST':
+        form = BuildingWithFloorsForm(request.POST)
+        if form.is_valid():
+            try:
+                with transaction.atomic():
+                    # Create building
+                    building = Building.objects.create(
+                        name=form.cleaned_data['building_name']
+                    )
+                    
+                    num_floors = form.cleaned_data['num_floors']
+                    rooms_per_floor = form.cleaned_data['rooms_per_floor']
+                    room_prefix = form.cleaned_data.get('room_number_prefix', '')
+                    
+                    # Create floors and rooms
+                    for floor_num in range(num_floors):
+                        floor = Floor.objects.create(
+                            building=building,
+                            floor_number=floor_num
+                        )
+                        
+                        # Create rooms for this floor
+                        for room_num in range(1, rooms_per_floor + 1):
+                            # Generate room number: floor_num + room_num (e.g., 101, 102, 201, 202)
+                            if room_prefix:
+                                room_number = f"{room_prefix}{floor_num}{room_num:02d}"
+                            else:
+                                room_number = f"{floor_num}{room_num:02d}"
+                            
+                            Room.objects.create(
+                                building=building,
+                                floor=floor,
+                                room_number=room_number,
+                                status='vacant'
+                            )
+                    
+                    messages.success(
+                        request,
+                        f'Successfully created building "{building.name}" with {num_floors} floors '
+                        f'and {num_floors * rooms_per_floor} rooms!'
+                    )
+                    return redirect('map')
+                    
+            except Exception as e:
+                messages.error(request, f'Error creating building: {str(e)}')
+        else:
+            for field, errors in form.errors.items():
+                for error in errors:
+                    messages.error(request, f'{field}: {error}')
+    else:
+        form = BuildingWithFloorsForm()
+    
+    context = {
+        'form': form,
+    }
+    return render(request, 'core/create_building.html', context)
 
 
 @login_required

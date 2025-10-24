@@ -7,15 +7,62 @@ from .models import (
 
 
 class BuildingForm(forms.ModelForm):
+    """Form for creating/editing buildings."""
     class Meta:
         model = Building
         fields = ['name']
         widgets = {
             'name': forms.TextInput(attrs={
-                'class': 'form-input rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500',
-                'placeholder': 'Building name'
+                'class': 'w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 min-h-[44px]',
+                'placeholder': 'e.g., Sunshine Apartments'
             })
         }
+
+
+class BuildingWithFloorsForm(forms.Form):
+    """Form for creating a building with multiple floors and rooms in one go."""
+    building_name = forms.CharField(
+        max_length=100,
+        widget=forms.TextInput(attrs={
+            'class': 'w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 min-h-[44px]',
+            'placeholder': 'e.g., Sunshine Apartments'
+        })
+    )
+    num_floors = forms.IntegerField(
+        min_value=1,
+        max_value=50,
+        initial=3,
+        widget=forms.NumberInput(attrs={
+            'class': 'w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 min-h-[44px]',
+            'min': '1',
+            'max': '50'
+        })
+    )
+    rooms_per_floor = forms.IntegerField(
+        min_value=1,
+        max_value=100,
+        initial=10,
+        widget=forms.NumberInput(attrs={
+            'class': 'w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 min-h-[44px]',
+            'min': '1',
+            'max': '100'
+        })
+    )
+    room_number_prefix = forms.CharField(
+        max_length=10,
+        required=False,
+        initial='',
+        widget=forms.TextInput(attrs={
+            'class': 'w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 min-h-[44px]',
+            'placeholder': 'e.g., A, B, or leave blank'
+        })
+    )
+    
+    def clean_building_name(self):
+        name = self.cleaned_data.get('building_name')
+        if Building.objects.filter(name__iexact=name).exists():
+            raise ValidationError(f'A building with the name "{name}" already exists.')
+        return name
 
 
 class FloorForm(forms.ModelForm):
